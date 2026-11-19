@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Runtime.initialize(this)
         Runtime.loadRules(this)
+        DataSmsRegistrar.refresh(this)
         requestNotificationPermission()
         requestSmsPermission()
         val listView = ListView(this)
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         listView.setOnItemLongClickListener { _, _, position, _ ->
             Runtime.engine.remove(Runtime.engine.rules()[position].id)
             Runtime.saveRules(this)
+            DataSmsRegistrar.refresh(this)
             render(listView)
             true
         }
@@ -170,6 +172,7 @@ class MainActivity : AppCompatActivity() {
                 )
                 Runtime.engine.replace(updated)
                 Runtime.saveRules(this)
+                DataSmsRegistrar.refresh(this)
                 render(listView)
             }
             .setNegativeButton("Cancel", null)

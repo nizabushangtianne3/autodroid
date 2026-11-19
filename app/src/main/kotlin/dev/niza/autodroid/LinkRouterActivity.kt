@@ -23,6 +23,7 @@ class LinkRouterActivity : AppCompatActivity() {
         val uri = intent?.data ?: return
         Runtime.initialize(this)
         Runtime.loadRules(this)
+        DataSmsRegistrar.refresh(this)
         Runtime.engine.dispatch(
             LinkOpenedEvent(
                 scheme = uri.scheme,

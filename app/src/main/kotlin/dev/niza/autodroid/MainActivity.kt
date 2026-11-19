@@ -11,6 +11,7 @@ import dev.niza.autodroid.engine.Rule
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Runtime.initialize(this)
         Runtime.loadRules(this)
         val listView = ListView(this)
         setContentView(listView)

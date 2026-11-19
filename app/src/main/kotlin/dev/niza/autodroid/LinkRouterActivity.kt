@@ -21,6 +21,7 @@ class LinkRouterActivity : AppCompatActivity() {
 
     private fun handle(intent: Intent?) {
         val uri = intent?.data ?: return
+        Runtime.initialize(this)
         Runtime.loadRules(this)
         Runtime.engine.dispatch(
             LinkOpenedEvent(

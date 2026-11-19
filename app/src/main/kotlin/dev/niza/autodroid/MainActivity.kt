@@ -300,7 +300,12 @@ class MainActivity : AppCompatActivity() {
                     is DataSmsReceivedTrigger -> "SMS"
                     else -> "Link"
                 }
-                "${rule.name} • $kind • ${rule.trigger.value.orEmpty()}"
+                val actionKind = when (rule.actions.firstOrNull()) {
+                    is OpenUrlAction -> "Open URL"
+                    is SendDataSmsAction -> "Send SMS"
+                    else -> "Notify"
+                }
+                "${rule.name} • $kind • ${rule.trigger.value.orEmpty()} • $actionKind"
                     .let { if (!rule.enabled) "$it • disabled" else it }
             },
         )

@@ -13,6 +13,7 @@ class DataSmsReceiver : BroadcastReceiver() {
         val port = intent.data?.port?.let { runCatching { it.toInt() }.getOrNull() } ?: return
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent).orEmpty()
         val message = messages.firstOrNull() ?: return
+        Runtime.loadRules(context)
         Runtime.engine.dispatch(
             DataSmsReceivedEvent(
                 destinationPort = port,

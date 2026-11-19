@@ -21,6 +21,7 @@ class LinkRouterActivity : AppCompatActivity() {
 
     private fun handle(intent: Intent?) {
         val uri = intent?.data ?: return
+        Runtime.loadRules(this)
         Runtime.engine.dispatch(
             LinkOpenedEvent(
                 scheme = uri.scheme,
@@ -28,6 +29,11 @@ class LinkRouterActivity : AppCompatActivity() {
                 path = uri.path,
             ),
         )
-        startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("com.android.chrome"))
+        startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_VIEW, uri),
+                "Open link",
+            ),
+        )
     }
 }

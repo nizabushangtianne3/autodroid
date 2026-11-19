@@ -21,6 +21,7 @@ import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.RuleStore
 import dev.niza.autodroid.engine.SendDataSmsAction
+import dev.niza.autodroid.engine.summary
 import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.ui.RuleEditor
 
@@ -221,8 +222,9 @@ class MainActivity : AppCompatActivity() {
                             is SendDataSmsAction -> "Send SMS"
                             else -> "Notify"
                         }
-                    "${rule.name} • $kind • ${rule.trigger.value.orEmpty()} • $actionKind"
-                        .let { if (!rule.enabled) "$it • disabled" else it }
+                    val actionSummary = rule.actions.firstOrNull()?.summary.orEmpty()
+                    val label = "$rule.name • $kind • ${rule.trigger.value.orEmpty()} • $actionKind • $actionSummary"
+                    if (rule.enabled) label else "$label • disabled"
                 },
             )
         listView.choiceMode = ListView.CHOICE_MODE_NONE

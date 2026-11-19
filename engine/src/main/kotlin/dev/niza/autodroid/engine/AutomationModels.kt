@@ -16,6 +16,14 @@ val Trigger.value: String?
             is AppLaunchedTrigger -> packageName
         }
 
+val Action.summary: String
+    get() =
+        when (this) {
+            is OpenUrlAction -> url
+            is SendDataSmsAction -> "$sender:$destinationPort • ${payload.size} bytes"
+            is NotifyAction -> "$title • $body"
+        }
+
 @Serializable
 @SerialName("link")
 data class LinkOpenedTrigger(

@@ -1,11 +1,14 @@
 package dev.niza.autodroid
 
 import android.Manifest
+import android.text.InputType
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.EditText
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
@@ -23,10 +26,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(listView)
         render(listView)
 
-        listView.setOnItemClickListener { _, _, _, _ ->
-            createSampleRule()
+        listView.setOnItemClickListener { _, _, position, _ ->
+            editRule(Runtime.engine.rules()[position], listView)
+        }
+
+        listView.setOnItemLongClickListener { _, _, position, _ ->
+            Runtime.engine.remove(Runtime.engine.rules()[position].id)
             Runtime.saveRules(this)
             render(listView)
+            true
         }
     }
 
@@ -40,6 +48,23 @@ class MainActivity : AppCompatActivity() {
                 actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
             ),
         )
+    }
+
+    private fun editRule(rule: Rule, listView: ListView) {
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            setText(rule.name)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Edit rule")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                Runtime.engine.replace(rule.copy(name = input.text.toString()))
+                Runtime.saveRules(this)
+                render(listView)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun requestNotificationPermission() {

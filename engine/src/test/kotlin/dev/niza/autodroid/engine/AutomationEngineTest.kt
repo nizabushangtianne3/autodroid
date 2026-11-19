@@ -60,4 +60,33 @@ class AutomationEngineTest {
         assertEquals(0, engine.dispatch(DataSmsReceivedEvent(1234, "+200")).matchedRuleCount)
         assertEquals(1, engine.dispatch(DataSmsReceivedEvent(1234, "+100")).matchedRuleCount)
     }
+
+    @Test
+    fun `replace updates existing rule and remove deletes it`() {
+        val engine = AutomationEngine { action -> ActionResult(action.id, true) }
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "old",
+                trigger = LinkOpenedTrigger("t1", host = "example.com"),
+                actions = listOf(NotifyAction("a1", "Old", "Old")),
+            ),
+        )
+
+        engine.replace(
+            Rule(
+                id = "r1",
+                name = "new",
+                trigger = LinkOpenedTrigger("t1", host = "example.com"),
+                actions = listOf(NotifyAction("a2", "New", "New")),
+            ),
+        )
+
+        assertEquals(1, engine.rules().size)
+        assertEquals("new", engine.rules().single().name)
+
+        engine.remove("r1")
+
+        assertEquals(0, engine.rules().size)
+    }
 }

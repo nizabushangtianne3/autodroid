@@ -46,6 +46,15 @@ class AutomationEngine(
         rules += rule
     }
 
+    fun replace(rule: Rule) {
+        val index = rules.indexOfFirst { it.id == rule.id }
+        if (index >= 0) rules[index] = rule else rules += rule
+    }
+
+    fun remove(ruleId: String) {
+        rules.removeAll { it.id == ruleId }
+    }
+
     fun rules(): List<Rule> = rules.toList()
 
     fun dispatch(event: TriggerEvent): ExecutionReport {

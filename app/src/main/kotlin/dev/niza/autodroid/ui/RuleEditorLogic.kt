@@ -1,6 +1,7 @@
 package dev.niza.autodroid.ui
 
 object RuleEditorLogic {
+    private const val FILTER_ALL = 0
     const val TYPE_LINK = 0
     const val TYPE_APP = 1
     const val TYPE_DATA_SMS = 2
@@ -80,4 +81,40 @@ object RuleEditorLogic {
     }
 
     private val PACKAGE_NAME_PATTERN = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$")
+
+    fun ruleMatchesTriggerFilter(
+        trigger: dev.niza.autodroid.engine.Trigger,
+        filterPosition: Int,
+    ): Boolean =
+        filterPosition == FILTER_ALL ||
+            when (filterPosition) {
+                TYPE_APP -> trigger is dev.niza.autodroid.engine.AppLaunchedTrigger
+                TYPE_DATA_SMS -> trigger is dev.niza.autodroid.engine.DataSmsReceivedTrigger
+                else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
+            }
+
+    fun ruleMatchesActionFilter(
+        action: dev.niza.autodroid.engine.Action?,
+        filterPosition: Int,
+    ): Boolean =
+        filterPosition == FILTER_ALL ||
+            when (filterPosition) {
+                ACTION_OPEN_URL -> action is dev.niza.autodroid.engine.OpenUrlAction
+                ACTION_SEND_DATA_SMS -> action is dev.niza.autodroid.engine.SendDataSmsAction
+                else -> action is dev.niza.autodroid.engine.NotifyAction
+            }
+
+    fun triggerLabel(trigger: dev.niza.autodroid.engine.Trigger): String =
+        when (trigger) {
+            is dev.niza.autodroid.engine.AppLaunchedTrigger -> "App"
+            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "SMS"
+            else -> "Link"
+        }
+
+    fun actionLabel(action: dev.niza.autodroid.engine.Action?): String =
+        when (action) {
+            is dev.niza.autodroid.engine.OpenUrlAction -> "Open URL"
+            is dev.niza.autodroid.engine.SendDataSmsAction -> "Send SMS"
+            else -> "Notify"
+        }
 }

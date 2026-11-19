@@ -13,20 +13,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import dev.niza.autodroid.engine.AppLaunchedTrigger
-import dev.niza.autodroid.engine.DataSmsReceivedTrigger
 import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
-import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.RuleStore
-import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.summary
 import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.ui.RuleEditor
+import dev.niza.autodroid.ui.RuleEditorLogic
 
 class MainActivity : AppCompatActivity() {
     private lateinit var listView: ListView
+    private var triggerFilter = 0
+    private var actionFilter = 0
     private val exportRules =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             uri ?: return@registerForActivityResult
@@ -68,11 +67,11 @@ class MainActivity : AppCompatActivity() {
         handleNotificationTarget(intent, listView)
 
         listView.setOnItemClickListener { _, _, position, _ ->
-            RuleEditor(this).editRule(Runtime.engine.rules()[position], listView)
+            RuleEditor(this).editRule(visibleRules()[position], listView)
         }
 
         listView.setOnItemLongClickListener { _, _, position, _ ->
-            Runtime.engine.remove(Runtime.engine.rules()[position].id)
+            Runtime.engine.remove(visibleRules()[position].id)
             Runtime.saveRules(this)
             DataSmsRegistrar.refresh(this)
             render(listView)
@@ -81,6 +80,12 @@ class MainActivity : AppCompatActivity() {
 
         showImportExportMenu(listView)
     }
+
+    private fun visibleRules(): List<Rule> =
+        Runtime.engine.rules().filter { rule ->
+            RuleEditorLogic.ruleMatchesTriggerFilter(rule.trigger, triggerFilter) &&
+                RuleEditorLogic.ruleMatchesActionFilter(rule.actions.firstOrNull(), actionFilter)
+        }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -138,6 +143,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun showImportExportMenu(listView: ListView) {
         val container = listView.parent as LinearLayout
+        val triggerFilter =
+            android.widget.Spinner(this).apply {
+                adapter =
+                    ArrayAdapter(
+                        this@MainActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        listOf("All triggers", "Link", "App", "Data SMS"),
+                    )
+                onItemSelectedListener =
+                    object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parent: android.widget.AdapterView<*>?,
+                            view: android.view.View?,
+                            position: Int,
+                            id: Long,
+                        ) {
+                            this@MainActivity.triggerFilter = position
+                            render(listView)
+                        }
+
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+                    }
+            }
+        val actionFilter =
+            android.widget.Spinner(this).apply {
+                adapter =
+                    ArrayAdapter(
+                        this@MainActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        listOf("All actions", "Notify", "Open URL", "Send Data SMS"),
+                    )
+                onItemSelectedListener =
+                    object : android.widget.AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parent: android.widget.AdapterView<*>?,
+                            view: android.view.View?,
+                            position: Int,
+                            id: Long,
+                        ) {
+                            this@MainActivity.actionFilter = position
+                            render(listView)
+                        }
+
+                        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+                    }
+            }
+        val filters =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(triggerFilter)
+                addView(actionFilter)
+            }
+        container.addView(filters, 0)
         val exportButton =
             com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
                 setImageResource(android.R.drawable.ic_menu_save)
@@ -204,24 +262,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun render(listView: ListView) {
-        val rules = Runtime.engine.rules()
+        val rules = visibleRules()
         listView.adapter =
             ArrayAdapter(
                 this,
                 android.R.layout.simple_list_item_1,
                 rules.map { rule ->
-                    val kind =
-                        when (rule.trigger) {
-                            is AppLaunchedTrigger -> "App"
-                            is DataSmsReceivedTrigger -> "SMS"
-                            else -> "Link"
-                        }
-                    val actionKind =
-                        when (rule.actions.firstOrNull()) {
-                            is OpenUrlAction -> "Open URL"
-                            is SendDataSmsAction -> "Send SMS"
-                            else -> "Notify"
-                        }
+                    val kind = RuleEditorLogic.triggerLabel(rule.trigger)
+                    val actionKind = RuleEditorLogic.actionLabel(rule.actions.firstOrNull())
                     val actionSummary = rule.actions.firstOrNull()?.summary.orEmpty()
                     val label = "$rule.name • $kind • ${rule.trigger.value.orEmpty()} • $actionKind • $actionSummary"
                     if (rule.enabled) label else "$label • disabled"

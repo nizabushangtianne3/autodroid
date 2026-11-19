@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.niza.autodroid.DataSmsRegistrarTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-19T15:08:29.577Z" hostname="DESKTOP-TC6I2C0" time="2.594">
+  <properties/>
+  <testcase name="refresh registers enabled data sms ports" classname="dev.niza.autodroid.DataSmsRegistrarTest" time="2.498"/>
+  <testcase name="refresh with invalid rules file registers no ports" classname="dev.niza.autodroid.DataSmsRegistrarTest" time="0.036"/>
+  <testcase name="refresh with no rules file registers no ports" classname="dev.niza.autodroid.DataSmsRegistrarTest" time="0.025"/>
+  <testcase name="refresh unregisters removed and disabled ports" classname="dev.niza.autodroid.DataSmsRegistrarTest" time="0.035"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

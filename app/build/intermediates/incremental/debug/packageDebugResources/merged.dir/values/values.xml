@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AutoDroid</string>
+    <style name="Theme.AutoDroid" parent="Theme.Material3.DayNight.NoActionBar"/>
+    <style name="Theme.AutoDroid.Transparent">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

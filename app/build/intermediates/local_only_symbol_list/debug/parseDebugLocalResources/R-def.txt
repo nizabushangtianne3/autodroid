@@ -1,0 +1,6 @@
+R_DEF: Internal format may change without notice
+local
+string app_name
+style Theme.AutoDroid
+style Theme.AutoDroid.Transparent
+xml accessibility_service_config

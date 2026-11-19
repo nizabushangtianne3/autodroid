@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.niza.autodroid.engine.AutomationEngineTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-19T15:08:16.310Z" hostname="DESKTOP-TC6I2C0" time="0.097">
+  <properties/>
+  <testcase name="replace updates existing rule and remove deletes it()" classname="dev.niza.autodroid.engine.AutomationEngineTest" time="0.088"/>
+  <testcase name="dispatch filters data sms by port and sender()" classname="dev.niza.autodroid.engine.AutomationEngineTest" time="0.002"/>
+  <testcase name="dispatch runs matching link opened rules()" classname="dev.niza.autodroid.engine.AutomationEngineTest" time="0.002"/>
+  <testcase name="disabled rules do not dispatch actions()" classname="dev.niza.autodroid.engine.AutomationEngineTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

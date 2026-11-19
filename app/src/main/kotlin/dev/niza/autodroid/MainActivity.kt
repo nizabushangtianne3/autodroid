@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.CheckBox
 import android.widget.Spinner
 import android.widget.LinearLayout
 import android.widget.ArrayAdapter
@@ -95,6 +96,12 @@ class MainActivity : AppCompatActivity() {
             hint = "Link host"
             setText(rule.trigger.value)
         }
+        val triggerHint = when (rule.trigger) {
+            is AppLaunchedTrigger -> "App package name"
+            is DataSmsReceivedTrigger -> "Data SMS destination port"
+            else -> "Link host"
+        }
+        triggerValue.hint = triggerHint
         val triggerSender = EditText(this).apply {
             hint = "SMS sender (optional)"
             setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
@@ -107,6 +114,10 @@ class MainActivity : AppCompatActivity() {
             hint = "Notification body"
             setText((rule.actions.firstOrNull() as? NotifyAction)?.body.orEmpty())
         }
+        val enabled = CheckBox(this).apply {
+            text = "Enabled"
+            isChecked = rule.enabled
+        }
         val form = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(48, 24, 48, 0)
@@ -116,6 +127,7 @@ class MainActivity : AppCompatActivity() {
             addView(triggerSender)
             addView(title)
             addView(body)
+            addView(enabled)
         }
         AlertDialog.Builder(this)
             .setTitle("Edit rule")
@@ -140,6 +152,7 @@ class MainActivity : AppCompatActivity() {
                             body = body.text.toString(),
                         ),
                     ),
+                    enabled = enabled.isChecked,
                 )
                 Runtime.engine.replace(updated)
                 Runtime.saveRules(this)
@@ -193,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                     else -> "Link"
                 }
                 "${rule.name} • $kind • ${rule.trigger.value.orEmpty()}"
+                .let { if (!rule.enabled) "$it • disabled" else it }
             },
         )
     }

@@ -89,4 +89,24 @@ class AutomationEngineTest {
 
         assertEquals(0, engine.rules().size)
     }
+
+    @Test
+    fun `disabled rules do not dispatch actions`() {
+        val executor = RecordingExecutor()
+        val engine = AutomationEngine(executor)
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "disabled",
+                trigger = AppLaunchedTrigger("t1", packageName = "example.app"),
+                actions = listOf(NotifyAction("a1", "Title", "Body")),
+                enabled = false,
+            ),
+        )
+
+        val report = engine.dispatch(AppLaunchedEvent("example.app"))
+
+        assertEquals(0, report.matchedRuleCount)
+        assertEquals(0, executor.executed.size)
+    }
 }

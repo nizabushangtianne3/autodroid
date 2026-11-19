@@ -58,7 +58,7 @@ class AutomationEngine(
     fun rules(): List<Rule> = rules.toList()
 
     fun dispatch(event: TriggerEvent): ExecutionReport {
-        val matched = rules.filter { event.matches(it.trigger) }
+        val matched = rules.filter { it.enabled && event.matches(it.trigger) }
         val results = matched.flatMap { rule -> rule.actions.map(executor::execute) }
         return ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
     }

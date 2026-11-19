@@ -80,4 +80,5 @@ data class Rule(
     val trigger: Trigger,
     val conditions: List<Condition> = emptyList(),
     val actions: List<Action>,
+    val enabled: Boolean = true,
 )

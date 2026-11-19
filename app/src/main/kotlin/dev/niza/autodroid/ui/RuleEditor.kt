@@ -318,7 +318,18 @@ class RuleEditor(private val activity: MainActivity) {
                 ),
                 0,
             )
-            .mapNotNull { it.activityInfo?.packageName }
+            .mapNotNull { info ->
+                val packageName = info.activityInfo?.packageName ?: return@mapNotNull null
+                val label =
+                    runCatching {
+                        info.loadLabel(activity.packageManager).toString()
+                    }.getOrNull()
+                if (label.isNullOrBlank() || label == packageName) {
+                    packageName
+                } else {
+                    "$label • $packageName"
+                }
+            }
             .distinct()
             .sorted()
 }

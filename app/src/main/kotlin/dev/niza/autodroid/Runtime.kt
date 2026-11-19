@@ -74,6 +74,15 @@ object Runtime {
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(action.title)
             .setContentText(action.body)
+            .setContentIntent(
+                android.app.PendingIntent.getActivity(
+                    appContext,
+                    action.id.hashCode(),
+                    Intent(appContext, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
             .build()
         manager.notify(action.id.hashCode(), notification)
         return "posted"

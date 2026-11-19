@@ -2,6 +2,8 @@ package dev.niza.autodroid.engine
 
 interface TriggerEvent {
     fun matches(trigger: Trigger): Boolean
+
+    fun injectTriggerVariables(engine: AutomationEngine) {}
 }
 
 data class LinkOpenedEvent(
@@ -16,6 +18,12 @@ data class LinkOpenedEvent(
         if (trigger.pathPrefix != null && (path ?: "").startsWith(trigger.pathPrefix)) return true
         return trigger.pathPrefix == null
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        host?.let { engine.setVariable("link_host", it) }
+        scheme?.let { engine.setVariable("link_scheme", it) }
+        path?.let { engine.setVariable("link_path", it) }
+    }
 }
 
 data class DataSmsReceivedEvent(
@@ -27,6 +35,11 @@ data class DataSmsReceivedEvent(
         if (trigger.destinationPort != destinationPort) return false
         return trigger.sender == null || trigger.sender == sender
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("sms_sender", sender)
+        engine.setVariable("sms_port", destinationPort.toString())
+    }
 }
 
 data class AppLaunchedEvent(
@@ -34,6 +47,10 @@ data class AppLaunchedEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is AppLaunchedTrigger && trigger.packageName == packageName
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("app_package", packageName)
     }
 }
 
@@ -46,6 +63,10 @@ data class ScreenOnOffEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.ScreenOnOffTrigger && trigger.screenOn == screenOn
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("screen_on", screenOn.toString())
     }
 }
 
@@ -60,6 +81,10 @@ data class BatteryLevelEvent(
             level <= trigger.level
         }
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("battery_level", level.toString())
+    }
 }
 
 data class AirplaneModeEvent(
@@ -67,6 +92,10 @@ data class AirplaneModeEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.AirplaneModeTrigger && trigger.enabled == enabled
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("airplane_mode", enabled.toString())
     }
 }
 
@@ -76,6 +105,10 @@ data class BluetoothEvent(
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.BluetoothTrigger && trigger.enabled == enabled
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("bluetooth_on", enabled.toString())
+    }
 }
 
 data class ExternalPowerEvent(
@@ -83,6 +116,10 @@ data class ExternalPowerEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.ExternalPowerTrigger && trigger.connected == connected
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("power_connected", connected.toString())
     }
 }
 
@@ -92,6 +129,10 @@ data class HeadphonesEvent(
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.HeadphonesTrigger && trigger.connected == connected
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("headphones_connected", connected.toString())
+    }
 }
 
 data class HotspotEvent(
@@ -100,6 +141,10 @@ data class HotspotEvent(
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.HotspotTrigger && trigger.enabled == enabled
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("hotspot_on", enabled.toString())
+    }
 }
 
 data class SilentModeEvent(
@@ -107,6 +152,10 @@ data class SilentModeEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.SilentModeTrigger && trigger.enabled == enabled
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("silent_mode", enabled.toString())
     }
 }
 
@@ -123,6 +172,11 @@ data class WifiConnectionEvent(
         }
         return false
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("wifi_connected", connected.toString())
+        ssid?.let { engine.setVariable("wifi_ssid", it) }
+    }
 }
 
 data class SignalOnOffEvent(
@@ -130,6 +184,10 @@ data class SignalOnOffEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.SignalOnOffTrigger && trigger.signalOn == signalOn
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("signal_on", signalOn.toString())
     }
 }
 
@@ -139,6 +197,10 @@ data class DockEvent(
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.DockTrigger && trigger.state == state
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("dock_state", state)
+    }
 }
 
 data class VpnEvent(
@@ -147,6 +209,10 @@ data class VpnEvent(
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.VpnTrigger && trigger.connected == connected
     }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("vpn_connected", connected.toString())
+    }
 }
 
 data class GPSEnabledEvent(
@@ -154,6 +220,10 @@ data class GPSEnabledEvent(
 ) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean {
         return trigger is dev.niza.autodroid.engine.GPSEnabledTrigger && trigger.enabled == enabled
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("gps_enabled", enabled.toString())
     }
 }
 
@@ -234,6 +304,7 @@ class AutomationEngine(
     }
 
     fun dispatch(event: TriggerEvent): ExecutionReport {
+        event.injectTriggerVariables(this)
         val matched = rules.filter { it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) }
         val results = matched.flatMap { rule -> executeActionList(rule.actions) }
         return ExecutionReport(matchedRuleCount = matched.size, actionResults = results)

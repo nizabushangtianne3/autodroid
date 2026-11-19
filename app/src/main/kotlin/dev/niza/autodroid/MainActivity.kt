@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         Runtime.initialize(this)
         Runtime.loadRules(this)
         requestNotificationPermission()
+        requestSmsPermission()
         val listView = ListView(this)
         setupAddButton(listView)
         render(listView)
@@ -156,8 +157,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun requestSmsPermission() {
+        if (
+            ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.SEND_SMS),
+                REQUEST_SMS,
+            )
+        }
+    }
+
     private companion object {
         private const val REQUEST_NOTIFICATIONS = 1001
+        private const val REQUEST_SMS = 1002
     }
 
     private fun render(listView: ListView) {

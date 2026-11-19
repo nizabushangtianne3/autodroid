@@ -19,9 +19,9 @@ This document maps MacroDroid's public feature surface to AutoDroid's independen
 | TimerTrigger | `ScheduleTrigger` (AlarmManager, exact alarms, minimum 1s) |
 | EmptyTrigger | Planned (immediate dispatch) |
 
-### Planned — Batch 1 (device state, receiver-based)
+### Batch 1 — Implemented (device state, receiver-based)
 
-AirplaneMode, BatteryLevel, BatterySaver, BatteryTemperature, Bluetooth, Boot, CellConnectionTypeChange, DataOnOff, DeviceUnlocked, Dock, ExternalPower, GPSEnabled, Headphones, Hotspot, ScreenOnOff, SilentMode, WifiConnection, WifiSSID, SignalOnOff, Vpn
+AirplaneMode ✅, BatteryLevel ✅, Bluetooth ✅, Dock ✅, ExternalPower ✅, GPSEnabled ✅, Headphones ✅, Hotspot ✅, ScreenOnOff ✅, SilentMode ✅, WifiConnection ✅, WifiSSID ✅, SignalOnOff ✅, Vpn ✅`n`nRemaining: BatterySaver, BatteryTemperature, Boot, CellConnectionTypeChange, DataOnOff, DeviceUnlocked
 
 ### Planned — Batch 2 (user interaction, accessibility)
 

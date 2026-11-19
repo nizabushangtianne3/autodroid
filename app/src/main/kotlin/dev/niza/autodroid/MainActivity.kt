@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Invalid rules file", Toast.LENGTH_SHORT).show()
                 return@registerForActivityResult
             }
-            Runtime.loadRules(imported)
+            mergeImportedRules(imported)
             Runtime.saveRules(this)
             DataSmsRegistrar.refresh(this)
             render(listView)
@@ -162,6 +162,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun importRules(listView: ListView) {
         importRules.launch(arrayOf("application/json"))
+    }
+
+    private fun mergeImportedRules(imported: List<Rule>) {
+        val current = Runtime.engine.rules().associateBy { it.id }.toMutableMap()
+        imported.forEach { current[it.id] = it }
+        Runtime.loadRules(current.values.toList())
     }
 
     private fun requestNotificationPermission() {

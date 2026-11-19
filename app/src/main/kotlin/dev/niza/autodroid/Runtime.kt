@@ -1,6 +1,8 @@
 package dev.niza.autodroid
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import dev.niza.autodroid.engine.ActionResult
 import dev.niza.autodroid.engine.AutomationEngine
+import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.RuleStore
 import dev.niza.autodroid.engine.SendDataSmsAction
@@ -45,10 +48,35 @@ object Runtime {
 
     private fun execute(action: dev.niza.autodroid.engine.Action): String {
         return when (action) {
+            is NotifyAction -> notify(action)
             is OpenUrlAction -> open(action)
             is SendDataSmsAction -> sendDataSms(action)
             else -> "accepted"
         }
+    }
+
+    private fun notify(action: NotifyAction): String {
+        val appContext = appContext ?: throw IllegalStateException("Application context unavailable")
+        val manager = NotificationManagerCompat.from(appContext)
+        manager.createNotificationChannel(
+            NotificationChannelCompat.Builder(ACTION_CHANNEL, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+                .setName("Automation actions")
+                .build(),
+        )
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            throw SecurityException("POST_NOTIFICATIONS not granted")
+        }
+        val notification = NotificationCompat.Builder(appContext, ACTION_CHANNEL)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(action.title)
+            .setContentText(action.body)
+            .build()
+        manager.notify(action.id.hashCode(), notification)
+        return "posted"
     }
 
     private fun open(action: OpenUrlAction): String {

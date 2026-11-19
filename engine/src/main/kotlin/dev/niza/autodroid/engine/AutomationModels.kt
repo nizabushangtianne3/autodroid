@@ -42,6 +42,8 @@ val Action.summary: String
             is ElseConditionAction -> "else"
             is EndIfAction -> "end if"
             is WaitAction -> "wait ${durationMillis}ms"
+            is RepeatStartAction -> "repeat ${count}x"
+            is RepeatEndAction -> "end repeat"
         }
 
 @Serializable
@@ -241,6 +243,19 @@ data class EndIfAction(
 data class WaitAction(
     override val id: String,
     val durationMillis: Long,
+) : Action
+
+@Serializable
+@SerialName("repeat_start")
+data class RepeatStartAction(
+    override val id: String,
+    val count: Int,
+) : Action
+
+@Serializable
+@SerialName("repeat_end")
+data class RepeatEndAction(
+    override val id: String,
 ) : Action
 
 @Serializable

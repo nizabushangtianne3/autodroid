@@ -315,9 +315,38 @@ class AutomationEngine(
         var insideIf = false
         var inElseBranch = false
         var conditionPassed = false
+        var insideRepeat = false
+        var repeatRemaining = 0
+        var repeatIndex = 0
+        val repeatActions = mutableListOf<Action>()
 
         for (action in actions) {
             when (action) {
+                is dev.niza.autodroid.engine.RepeatStartAction -> {
+                    insideRepeat = true
+                    repeatRemaining = action.count
+                    repeatIndex = 0
+                    repeatActions.clear()
+                }
+                is dev.niza.autodroid.engine.RepeatEndAction -> {
+                    if (insideRepeat) {
+                        repeat(repeatRemaining) {
+                            repeatIndex++
+                            repeatActions.forEach { inner ->
+                                when (inner) {
+                                    is dev.niza.autodroid.engine.SetVariableAction ->
+                                        setVariable(
+                                            inner.name,
+                                            inner.value.replace("{loop_index}", repeatIndex.toString()),
+                                        )
+                                    else -> results += executor.execute(inner)
+                                }
+                            }
+                        }
+                    }
+                    insideRepeat = false
+                    repeatActions.clear()
+                }
                 is dev.niza.autodroid.engine.IfConditionAction -> {
                     insideIf = true
                     inElseBranch = false
@@ -333,8 +362,10 @@ class AutomationEngine(
                 }
                 else -> {
                     val shouldExecute = !insideIf || conditionPassed || inElseBranch
-                    if (shouldExecute) {
+                    if (shouldExecute && !insideRepeat) {
                         results += executor.execute(action)
+                    } else if (shouldExecute && insideRepeat) {
+                        repeatActions += action
                     }
                 }
             }

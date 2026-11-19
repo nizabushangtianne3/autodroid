@@ -1,6 +1,7 @@
 package dev.niza.autodroid.ui
 
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -53,7 +54,7 @@ class RuleEditor(private val activity: MainActivity) {
             }
         }
         val triggerValue =
-            EditText(activity).apply {
+            AutoCompleteTextView(activity).apply {
                 hint =
                     triggerHintFor(
                         when (rule.trigger) {
@@ -64,6 +65,13 @@ class RuleEditor(private val activity: MainActivity) {
                     )
                 setText(rule.trigger.value)
             }
+        triggerValue.setAdapter(
+            ArrayAdapter(
+                activity,
+                android.R.layout.simple_dropdown_item_1line,
+                launchablePackages(activity),
+            ),
+        )
         triggerType.onItemSelectedListener =
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -301,4 +309,16 @@ class RuleEditor(private val activity: MainActivity) {
         if (clean.isEmpty() || clean.length % 2 != 0) return ByteArray(0)
         return clean.chunked(2).mapNotNull { it.toIntOrNull(16)?.toByte() }.toByteArray()
     }
+
+    private fun launchablePackages(activity: MainActivity): List<String> =
+        activity.packageManager
+            .queryIntentActivities(
+                android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(
+                    android.content.Intent.CATEGORY_LAUNCHER,
+                ),
+                0,
+            )
+            .mapNotNull { it.activityInfo?.packageName }
+            .distinct()
+            .sorted()
 }

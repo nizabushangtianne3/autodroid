@@ -50,6 +50,19 @@
 
 项目使用 Kotlin、Android Gradle Plugin 与 Gradle Wrapper。CI 使用 JDK 21。
 
+## 发布
+
+推送 `v*` 格式的 tag 会触发 GitHub Actions：
+
+1. 执行 ktlint、engine 测试、Android 单元测试。
+2. 构建并上传 signed debug APK 与 release APK（release 当前使用 debug 签名，便于本地安装测试）。
+3. 创建对应的 GitHub Release 并附加 `AutoDroid-<tag>-release.apk` 和 `AutoDroid-<tag>-debug.apk`。
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## 法律与设计边界
 
 本仓库是独立实现。所有名称、接口、数据结构与代码均为原创；不包含 MacroDroid 的 APK、DEX、资源、图标、文案或反编译产物。若要增加与特定商业应用相似的系统能力，请依据 Android 公开文档设计并自行测试。

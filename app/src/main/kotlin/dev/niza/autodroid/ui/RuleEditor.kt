@@ -72,6 +72,10 @@ class RuleEditor(private val activity: MainActivity) {
                 launchablePackages(activity),
             ),
         )
+        triggerValue.setOnItemClickListener { _, _, position, _ ->
+            val selected = (triggerValue.adapter.getItem(position) as? String) ?: return@setOnItemClickListener
+            triggerValue.setText(selected.substringAfterLast(" • "))
+        }
         triggerType.onItemSelectedListener =
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(

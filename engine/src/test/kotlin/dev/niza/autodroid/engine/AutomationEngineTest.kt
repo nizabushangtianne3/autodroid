@@ -1,0 +1,63 @@
+package dev.niza.autodroid.engine
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class AutomationEngineTest {
+    private class RecordingExecutor : ActionExecutor {
+        val executed = mutableListOf<Action>()
+
+        override fun execute(action: Action): ActionResult {
+            executed += action
+            return ActionResult(action.id, success = true)
+        }
+    }
+
+    @Test
+    fun `dispatch runs matching link opened rules`() {
+        val executor = RecordingExecutor()
+        val engine = AutomationEngine(executor)
+        val action = NotifyAction("notify", "Title", "Body")
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "tracking link",
+                trigger = LinkOpenedTrigger("t1", host = "example.com", pathPrefix = "/x"),
+                actions = listOf(action),
+            ),
+        )
+        engine.register(
+            Rule(
+                id = "r2",
+                name = "other host",
+                trigger = LinkOpenedTrigger("t2", host = "other.com"),
+                actions = listOf(action),
+            ),
+        )
+
+        val report = engine.dispatch(LinkOpenedEvent("https", "example.com", "/x/test"))
+
+        assertEquals(1, report.matchedRuleCount)
+        assertEquals(listOf<Action>(action), executor.executed)
+        assertTrue(report.success)
+    }
+
+    @Test
+    fun `dispatch filters data sms by port and sender`() {
+        val executor = RecordingExecutor()
+        val engine = AutomationEngine(executor)
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "sms",
+                trigger = DataSmsReceivedTrigger("t1", destinationPort = 1234, sender = "+100"),
+                actions = listOf(NotifyAction("a1", "SMS", "received")),
+            ),
+        )
+
+        assertEquals(0, engine.dispatch(DataSmsReceivedEvent(4321, "+100")).matchedRuleCount)
+        assertEquals(0, engine.dispatch(DataSmsReceivedEvent(1234, "+200")).matchedRuleCount)
+        assertEquals(1, engine.dispatch(DataSmsReceivedEvent(1234, "+100")).matchedRuleCount)
+    }
+}

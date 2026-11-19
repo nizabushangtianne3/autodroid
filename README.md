@@ -12,7 +12,7 @@
 ### 触发器
 
 - **Link**：应用可作为链接处理器，按 host 匹配后派发事件。
-- **App**：通过无障碍服务监听应用前台窗口变化；已过滤 AutoDroid 自身，并对同一包名做 1 秒防抖。
+- **App**：通过无障碍服务监听应用前台窗口变化；已过滤 AutoDroid 自身，并对同一包名做 1 秒防抖。编辑时可从已安装应用自动补全，候选显示 `应用名 • 包名`，选中后只保存包名。
 - **Data SMS**：按规则中的目标端口动态注册/注销系统数据短信接收器；可选匹配发送方。
 
 ### 动作
@@ -26,8 +26,12 @@
 - 规则本地 JSON 持久化。
 - 可创建、编辑、删除规则。
 - 可启用或禁用规则；禁用规则不会派发动作。
+- 规则列表显示触发类型、触发值、动作类型、动作摘要和禁用状态。
 - 触发类型切换时，字段提示动态更新。
 - Android 启动时请求通知与短信权限。
+- 触发和动作字段保存前会做必填与格式校验。
+- 支持通过系统文件选择器导出/导入 JSON；导入按规则 ID 合并，同 ID 覆盖、不同 ID 追加。
+- Link / App / Data SMS 触发执行后会发布结果通知，显示匹配规则数、每个动作成功或失败状态和错误信息；点击通知可打开应用。
 
 ## 构建
 
@@ -36,6 +40,13 @@
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ```
+
+## 测试与代码质量
+
+- `engine` 使用 Kotlin Test 覆盖规则匹配、启用/禁用、编辑替换与 JSON 序列化。
+- `app` 使用 Robolectric 覆盖动态 Data SMS 端口注册和注销。
+- `RuleEditorLogic` 是无 Android 依赖的表单校验纯逻辑，并有单元测试覆盖三类触发和三类动作。
+- 项目使用 ktlint；CI 执行 `ktlintCheck`、`engine` 测试、Android 单元测试和 debug APK 构建。
 
 项目使用 Kotlin、Android Gradle Plugin 与 Gradle Wrapper。CI 使用 JDK 21。
 

@@ -23,12 +23,21 @@ object Runtime {
     private const val ACTION_CHANNEL = "automation_actions"
     const val EXTRA_RULE_ID = "rule_id"
 
-    val engine =
+    private val variables = mutableMapOf<String, String>()
+
+    val engine: AutomationEngine =
         AutomationEngine { action ->
-            runCatching { execute(action) }.fold(
-                onSuccess = { ActionResult(action.id, success = true, message = it) },
-                onFailure = { ActionResult(action.id, success = false, message = it.message) },
-            )
+            when (action) {
+                is dev.niza.autodroid.engine.SetVariableAction -> {
+                    variables[action.name] = action.value
+                    ActionResult(action.id, success = true, message = "variable set")
+                }
+                else ->
+                    runCatching { execute(action) }.fold(
+                        onSuccess = { ActionResult(action.id, success = true, message = it) },
+                        onFailure = { ActionResult(action.id, success = false, message = it.message) },
+                    )
+            }
         }
 
     fun dispatchAndReport(event: dev.niza.autodroid.engine.TriggerEvent) {

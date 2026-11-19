@@ -37,6 +37,7 @@ val Action.summary: String
             is OpenUrlAction -> url
             is SendDataSmsAction -> "$sender:$destinationPort • ${payload.size} bytes"
             is NotifyAction -> "$title • $body"
+            is SetVariableAction -> "$name = $value"
         }
 
 @Serializable
@@ -203,6 +204,14 @@ data class OpenUrlAction(
 data class Condition(
     val expression: String,
 )
+
+@Serializable
+@SerialName("set_variable")
+data class SetVariableAction(
+    override val id: String,
+    val name: String,
+    val value: String,
+) : Action
 
 @Serializable
 data class Rule(

@@ -161,6 +161,7 @@ class AutomationEngine(
     private val executor: ActionExecutor,
 ) {
     private val rules = mutableListOf<Rule>()
+    private val variables = mutableMapOf<String, String>()
 
     fun register(rule: Rule) {
         rules += rule
@@ -177,8 +178,63 @@ class AutomationEngine(
 
     fun rules(): List<Rule> = rules.toList()
 
+    fun setVariable(
+        name: String,
+        value: String,
+    ) {
+        variables[name] = value
+    }
+
+    fun variable(name: String): String? = variables[name]
+
+    fun variables(): Map<String, String> = variables.toMap()
+
+    fun conditionsSatisfied(rule: Rule): Boolean =
+        rule.conditions.all { condition ->
+            evaluateExpression(condition.expression)
+        }
+
+    fun evaluateExpression(expression: String): Boolean {
+        val resolved = variables.entries.fold(expression) { text, (name, value) -> text.replace("{$name}", value) }
+        val comparisons = listOf("==", "!=", ">=", "<=", ">", "<")
+        for (operator in comparisons) {
+            val index = resolved.indexOf(operator)
+            if (index > 0) {
+                val left = resolved.substring(0, index).trim()
+                val right = resolved.substring(index + operator.length).trim()
+                return compareValues(left, operator, right)
+            }
+        }
+        return resolved.toBooleanStrictOrNull() ?: false
+    }
+
+    private fun compareValues(
+        left: String,
+        operator: String,
+        right: String,
+    ): Boolean {
+        val leftNumber = left.toDoubleOrNull()
+        val rightNumber = right.toDoubleOrNull()
+        if (leftNumber != null && rightNumber != null) {
+            return when (operator) {
+                "==" -> leftNumber == rightNumber
+                "!=" -> leftNumber != rightNumber
+                ">=" -> leftNumber >= rightNumber
+                "<=" -> leftNumber <= rightNumber
+                ">" -> leftNumber > rightNumber
+                "<" -> leftNumber < rightNumber
+                else -> false
+            }
+        }
+        return when (operator) {
+            "==" -> left == right
+            "!=" -> left != right
+            else -> false
+        }
+    }
+
     fun dispatch(event: TriggerEvent): ExecutionReport {
-        val matched = rules.filter { it.enabled && event.matches(it.trigger) }
+        val matched = rules.filter { it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) }
         val results = matched.flatMap { rule -> rule.actions.map(executor::execute) }
         return ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
     }

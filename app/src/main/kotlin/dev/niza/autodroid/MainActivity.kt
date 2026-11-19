@@ -138,8 +138,28 @@ class MainActivity : AppCompatActivity() {
                 },
             )
         }
+        val actionHintFor = { typePosition: Int ->
+            when (typePosition) {
+                1 -> "URL"
+                2 -> "Destination phone number"
+                else -> "Notification title"
+            }
+        }
+        val actionExtraHintFor = { typePosition: Int ->
+            when (typePosition) {
+                1 -> "Unused"
+                2 -> "Payload hex"
+                else -> "Notification body"
+            }
+        }
         val actionValue = EditText(this).apply {
-            hint = "Notification title"
+            hint = actionHintFor(
+                when (rule.actions.firstOrNull()) {
+                    is OpenUrlAction -> 1
+                    is SendDataSmsAction -> 2
+                    else -> 0
+                },
+            )
             setText(
                 when (val action = rule.actions.firstOrNull()) {
                     is NotifyAction -> action.title
@@ -150,14 +170,28 @@ class MainActivity : AppCompatActivity() {
             )
         }
         val actionExtra = EditText(this).apply {
-            hint = "Notification body"
+            hint = actionExtraHintFor(
+                when (rule.actions.firstOrNull()) {
+                    is OpenUrlAction -> 1
+                    is SendDataSmsAction -> 2
+                    else -> 0
+                },
+            )
             setText(
                 when (val action = rule.actions.firstOrNull()) {
                     is NotifyAction -> action.body
-                    is SendDataSmsAction -> android.util.Base64.encodeToString(action.payload, android.util.Base64.NO_WRAP)
+                    is SendDataSmsAction -> action.payload.joinToString("") { "%02X".format(it) }
                     else -> ""
                 },
             )
+        }
+        actionType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                actionValue.hint = actionHintFor(position)
+                actionExtra.hint = actionExtraHintFor(position)
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
         }
         val enabled = CheckBox(this).apply {
             text = "Enabled"
@@ -209,12 +243,18 @@ class MainActivity : AppCompatActivity() {
             1 -> OpenUrlAction(actionId, value)
             2 -> SendDataSmsAction(
                 actionId,
-                destinationPort = extra.toIntOrNull() ?: 0,
+                destinationPort = 0,
                 sender = value,
-                payload = extra.toByteArray(),
+                payload = parseHex(extra),
             )
             else -> NotifyAction(actionId, title = value, body = extra)
         }
+    }
+
+    private fun parseHex(value: String): ByteArray {
+        val clean = value.removePrefix("0x").filterNot { it.isWhitespace() }
+        if (clean.isEmpty() || clean.length % 2 != 0) return ByteArray(0)
+        return clean.chunked(2).mapNotNull { it.toIntOrNull(16)?.toByte() }.toByteArray()
     }
 
     private fun requestNotificationPermission() {

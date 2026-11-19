@@ -253,6 +253,14 @@ class MainActivity : AppCompatActivity() {
                     android.widget.Toast.makeText(this, "Data SMS port must be 1-65535", android.widget.Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
+                val actionValueText = actionValue.text.toString()
+                val actionExtraText = actionExtra.text.toString()
+                val actionPortText = actionPort.text.toString()
+                val actionValidationError = validateAction(actionType.selectedItemPosition, actionValueText, actionExtraText, actionPortText)
+                if (actionValidationError != null) {
+                    android.widget.Toast.makeText(this, actionValidationError, android.widget.Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 val sender = triggerSender.text.toString().trim().ifBlank { null }
                 val triggerId = rule.trigger.id
                 val trigger = when (triggerType.selectedItemPosition) {
@@ -267,9 +275,9 @@ class MainActivity : AppCompatActivity() {
                         buildAction(
                             sequence,
                             actionType.selectedItemPosition,
-                            actionValue.text.toString(),
-                            actionExtra.text.toString(),
-                            actionPort.text.toString(),
+                            actionValueText,
+                            actionExtraText,
+                            actionPortText,
                         ),
                     ),
                     enabled = enabled.isChecked,
@@ -281,6 +289,25 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun validateAction(typePosition: Int, value: String, extra: String, port: String): String? {
+        if (value.isBlank()) {
+            return when (typePosition) {
+                1 -> "URL is required"
+                2 -> "Destination phone number is required"
+                else -> "Notification title is required"
+            }
+        }
+        return when (typePosition) {
+            1 -> null
+            2 -> when {
+                port.toIntOrNull() !in 1..65535 -> "Action port must be 1-65535"
+                parseHex(extra).isEmpty() -> "Payload hex is required"
+                else -> null
+            }
+            else -> if (extra.isBlank()) "Notification body is required" else null
+        }
     }
 
     private fun buildAction(sequence: String, typePosition: Int, value: String, extra: String, port: String): dev.niza.autodroid.engine.Action {

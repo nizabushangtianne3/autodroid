@@ -33,6 +33,7 @@
 
 ```bash
 ./gradlew :engine:test
+./gradlew :app:testDebugUnitTest
 ./gradlew :app:assembleDebug
 ```
 

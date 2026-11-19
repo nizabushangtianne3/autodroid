@@ -13,6 +13,13 @@ object DataSmsRegistrar {
     private val receivers = mutableMapOf<Int, BroadcastReceiver>()
     private var appContext: Context? = null
 
+    fun registeredPortsForTest(): Set<Int> = receivers.keys.toSet()
+
+    fun resetForTest(context: Context) {
+        receivers.keys.toList().forEach(::unregister)
+        appContext = null
+    }
+
     fun refresh(context: Context) {
         val appContext = context.applicationContext
         this.appContext = appContext

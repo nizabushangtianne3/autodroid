@@ -10,6 +10,16 @@ object RuleEditorLogic {
     const val TYPE_BATTERY_LEVEL = 5
     const val TYPE_AIRPLANE_MODE = 6
     const val TYPE_BLUETOOTH = 7
+    const val TYPE_EXTERNAL_POWER = 8
+    const val TYPE_HEADPHONES = 9
+    const val TYPE_HOTSPOT = 10
+    const val TYPE_SILENT_MODE = 11
+    const val TYPE_WIFI_CONNECTION = 12
+    const val TYPE_WIFI_SSID = 13
+    const val TYPE_SIGNAL_ON_OFF = 14
+    const val TYPE_DOCK = 15
+    const val TYPE_VPN = 16
+    const val TYPE_GPS_ENABLED = 17
 
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
@@ -24,6 +34,16 @@ object RuleEditorLogic {
             TYPE_BATTERY_LEVEL -> "Battery level percentage"
             TYPE_AIRPLANE_MODE -> "Airplane enabled (true/false)"
             TYPE_BLUETOOTH -> "Bluetooth enabled (true/false)"
+            TYPE_EXTERNAL_POWER -> "Power connected (true/false)"
+            TYPE_HEADPHONES -> "Headphones connected (true/false)"
+            TYPE_HOTSPOT -> "Hotspot enabled (true/false)"
+            TYPE_SILENT_MODE -> "Silent mode enabled (true/false)"
+            TYPE_WIFI_CONNECTION -> "WiFi connected (true/false)"
+            TYPE_WIFI_SSID -> "WiFi SSID"
+            TYPE_SIGNAL_ON_OFF -> "Signal on (true/false)"
+            TYPE_DOCK -> "Dock state"
+            TYPE_VPN -> "VPN connected (true/false)"
+            TYPE_GPS_ENABLED -> "GPS enabled (true/false)"
             else -> "Link host"
         }
 
@@ -65,8 +85,22 @@ object RuleEditorLogic {
                 val level = value.toIntOrNull()
                 if (level == null || level !in 0..100) "Battery level must be 0-100" else null
             }
-            TYPE_SCREEN_ON_OFF, TYPE_AIRPLANE_MODE, TYPE_BLUETOOTH -> {
+            TYPE_SCREEN_ON_OFF,
+            TYPE_AIRPLANE_MODE,
+            TYPE_BLUETOOTH,
+            TYPE_EXTERNAL_POWER,
+            TYPE_HEADPHONES,
+            TYPE_HOTSPOT,
+            TYPE_SILENT_MODE,
+            TYPE_WIFI_CONNECTION,
+            TYPE_SIGNAL_ON_OFF,
+            TYPE_VPN,
+            TYPE_GPS_ENABLED,
+            -> {
                 if (value.toBooleanStrictOrNull() == null) "Value must be true or false" else null
+            }
+            TYPE_WIFI_SSID, TYPE_DOCK -> {
+                if (value.isBlank()) "Value is required" else null
             }
             else -> null
         }
@@ -117,6 +151,16 @@ object RuleEditorLogic {
                 TYPE_BATTERY_LEVEL -> trigger is dev.niza.autodroid.engine.BatteryLevelTrigger
                 TYPE_AIRPLANE_MODE -> trigger is dev.niza.autodroid.engine.AirplaneModeTrigger
                 TYPE_BLUETOOTH -> trigger is dev.niza.autodroid.engine.BluetoothTrigger
+                TYPE_EXTERNAL_POWER -> trigger is dev.niza.autodroid.engine.ExternalPowerTrigger
+                TYPE_HEADPHONES -> trigger is dev.niza.autodroid.engine.HeadphonesTrigger
+                TYPE_HOTSPOT -> trigger is dev.niza.autodroid.engine.HotspotTrigger
+                TYPE_SILENT_MODE -> trigger is dev.niza.autodroid.engine.SilentModeTrigger
+                TYPE_WIFI_CONNECTION -> trigger is dev.niza.autodroid.engine.WifiConnectionTrigger
+                TYPE_WIFI_SSID -> trigger is dev.niza.autodroid.engine.WifiSSIDTrigger
+                TYPE_SIGNAL_ON_OFF -> trigger is dev.niza.autodroid.engine.SignalOnOffTrigger
+                TYPE_DOCK -> trigger is dev.niza.autodroid.engine.DockTrigger
+                TYPE_VPN -> trigger is dev.niza.autodroid.engine.VpnTrigger
+                TYPE_GPS_ENABLED -> trigger is dev.niza.autodroid.engine.GPSEnabledTrigger
                 else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
             }
 
@@ -147,6 +191,16 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.BatteryLevelTrigger -> "Battery"
             is dev.niza.autodroid.engine.AirplaneModeTrigger -> "Airplane"
             is dev.niza.autodroid.engine.BluetoothTrigger -> "Bluetooth"
+            is dev.niza.autodroid.engine.ExternalPowerTrigger -> "Power"
+            is dev.niza.autodroid.engine.HeadphonesTrigger -> "Headphones"
+            is dev.niza.autodroid.engine.HotspotTrigger -> "Hotspot"
+            is dev.niza.autodroid.engine.SilentModeTrigger -> "Silent"
+            is dev.niza.autodroid.engine.WifiConnectionTrigger -> "WiFi"
+            is dev.niza.autodroid.engine.WifiSSIDTrigger -> "WiFi SSID"
+            is dev.niza.autodroid.engine.SignalOnOffTrigger -> "Signal"
+            is dev.niza.autodroid.engine.DockTrigger -> "Dock"
+            is dev.niza.autodroid.engine.VpnTrigger -> "VPN"
+            is dev.niza.autodroid.engine.GPSEnabledTrigger -> "GPS"
             else -> "Link"
         }
 }

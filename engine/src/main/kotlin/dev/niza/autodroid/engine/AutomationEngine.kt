@@ -78,6 +78,85 @@ data class BluetoothEvent(
     }
 }
 
+data class ExternalPowerEvent(
+    val connected: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.ExternalPowerTrigger && trigger.connected == connected
+    }
+}
+
+data class HeadphonesEvent(
+    val connected: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.HeadphonesTrigger && trigger.connected == connected
+    }
+}
+
+data class HotspotEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.HotspotTrigger && trigger.enabled == enabled
+    }
+}
+
+data class SilentModeEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.SilentModeTrigger && trigger.enabled == enabled
+    }
+}
+
+data class WifiConnectionEvent(
+    val connected: Boolean,
+    val ssid: String?,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger is dev.niza.autodroid.engine.WifiConnectionTrigger) {
+            return trigger.connected == connected
+        }
+        if (trigger is dev.niza.autodroid.engine.WifiSSIDTrigger) {
+            return connected && ssid == trigger.ssid
+        }
+        return false
+    }
+}
+
+data class SignalOnOffEvent(
+    val signalOn: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.SignalOnOffTrigger && trigger.signalOn == signalOn
+    }
+}
+
+data class DockEvent(
+    val state: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.DockTrigger && trigger.state == state
+    }
+}
+
+data class VpnEvent(
+    val connected: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.VpnTrigger && trigger.connected == connected
+    }
+}
+
+data class GPSEnabledEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.GPSEnabledTrigger && trigger.enabled == enabled
+    }
+}
+
 class AutomationEngine(
     private val executor: ActionExecutor,
 ) {

@@ -36,7 +36,12 @@ class RuleEditor(private val activity: MainActivity) {
                     ArrayAdapter(
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
-                        listOf("Link", "App", "Data SMS", "Schedule", "Screen On/Off", "Battery Level", "Airplane Mode", "Bluetooth"),
+                        listOf(
+                            "Link", "App", "Data SMS", "Schedule",
+                            "Screen On/Off", "Battery Level", "Airplane Mode", "Bluetooth",
+                            "Power", "Headphones", "Hotspot", "Silent Mode",
+                            "WiFi Connection", "WiFi SSID", "Signal On/Off", "Dock", "VPN", "GPS",
+                        ),
                     )
                 setSelection(
                     when (rule.trigger) {
@@ -59,6 +64,16 @@ class RuleEditor(private val activity: MainActivity) {
                             is dev.niza.autodroid.engine.BatteryLevelTrigger -> RuleEditorLogic.TYPE_BATTERY_LEVEL
                             is dev.niza.autodroid.engine.AirplaneModeTrigger -> RuleEditorLogic.TYPE_AIRPLANE_MODE
                             is dev.niza.autodroid.engine.BluetoothTrigger -> RuleEditorLogic.TYPE_BLUETOOTH
+                            is dev.niza.autodroid.engine.ExternalPowerTrigger -> RuleEditorLogic.TYPE_EXTERNAL_POWER
+                            is dev.niza.autodroid.engine.HeadphonesTrigger -> RuleEditorLogic.TYPE_HEADPHONES
+                            is dev.niza.autodroid.engine.HotspotTrigger -> RuleEditorLogic.TYPE_HOTSPOT
+                            is dev.niza.autodroid.engine.SilentModeTrigger -> RuleEditorLogic.TYPE_SILENT_MODE
+                            is dev.niza.autodroid.engine.WifiConnectionTrigger -> RuleEditorLogic.TYPE_WIFI_CONNECTION
+                            is dev.niza.autodroid.engine.WifiSSIDTrigger -> RuleEditorLogic.TYPE_WIFI_SSID
+                            is dev.niza.autodroid.engine.SignalOnOffTrigger -> RuleEditorLogic.TYPE_SIGNAL_ON_OFF
+                            is dev.niza.autodroid.engine.DockTrigger -> RuleEditorLogic.TYPE_DOCK
+                            is dev.niza.autodroid.engine.VpnTrigger -> RuleEditorLogic.TYPE_VPN
+                            is dev.niza.autodroid.engine.GPSEnabledTrigger -> RuleEditorLogic.TYPE_GPS_ENABLED
                             else -> RuleEditorLogic.TYPE_LINK
                         },
                     )
@@ -231,6 +246,26 @@ class RuleEditor(private val activity: MainActivity) {
                             dev.niza.autodroid.engine.AirplaneModeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
                         RuleEditorLogic.TYPE_BLUETOOTH ->
                             dev.niza.autodroid.engine.BluetoothTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_EXTERNAL_POWER ->
+                            dev.niza.autodroid.engine.ExternalPowerTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_HEADPHONES ->
+                            dev.niza.autodroid.engine.HeadphonesTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_HOTSPOT ->
+                            dev.niza.autodroid.engine.HotspotTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_SILENT_MODE ->
+                            dev.niza.autodroid.engine.SilentModeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_WIFI_CONNECTION ->
+                            dev.niza.autodroid.engine.WifiConnectionTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_WIFI_SSID ->
+                            dev.niza.autodroid.engine.WifiSSIDTrigger(triggerId, ssid = value)
+                        RuleEditorLogic.TYPE_SIGNAL_ON_OFF ->
+                            dev.niza.autodroid.engine.SignalOnOffTrigger(triggerId, signalOn = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_DOCK ->
+                            dev.niza.autodroid.engine.DockTrigger(triggerId, state = value)
+                        RuleEditorLogic.TYPE_VPN ->
+                            dev.niza.autodroid.engine.VpnTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_GPS_ENABLED ->
+                            dev.niza.autodroid.engine.GPSEnabledTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }
                 val updated =

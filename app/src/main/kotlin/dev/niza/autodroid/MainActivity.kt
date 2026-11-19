@@ -95,6 +95,10 @@ class MainActivity : AppCompatActivity() {
             hint = "Link host"
             setText(rule.trigger.value)
         }
+        val triggerSender = EditText(this).apply {
+            hint = "SMS sender (optional)"
+            setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
+        }
         val title = EditText(this).apply {
             hint = "Notification title"
             setText((rule.actions.firstOrNull() as? NotifyAction)?.title.orEmpty())
@@ -109,6 +113,7 @@ class MainActivity : AppCompatActivity() {
             addView(name)
             addView(triggerType)
             addView(triggerValue)
+            addView(triggerSender)
             addView(title)
             addView(body)
         }
@@ -118,10 +123,11 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Save") { _, _ ->
                 val sequence = rule.id.substringAfterLast('-')
                 val value = triggerValue.text.toString()
+                val sender = triggerSender.text.toString().trim().ifBlank { null }
                 val triggerId = rule.trigger.id
                 val trigger = when (triggerType.selectedItemPosition) {
                     1 -> AppLaunchedTrigger(triggerId, value)
-                    2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = null)
+                    2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = sender)
                     else -> LinkOpenedTrigger(triggerId, host = value)
                 }
                 val updated = rule.copy(

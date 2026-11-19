@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ListView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,6 +18,7 @@ import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.Rule
+import dev.niza.autodroid.engine.RuleStore
 import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.ui.RuleEditor
@@ -48,6 +50,8 @@ class MainActivity : AppCompatActivity() {
             render(listView)
             true
         }
+
+        showImportExportMenu(listView)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -104,6 +108,77 @@ class MainActivity : AppCompatActivity() {
         RuleEditor(this).editRule(rule, listView)
     }
 
+    private fun showImportExportMenu(listView: ListView) {
+        val container = listView.parent as LinearLayout
+        val exportButton =
+            com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
+                setImageResource(android.R.drawable.ic_menu_save)
+                setOnClickListener { exportRules() }
+            }
+        val importButton =
+            com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
+                setImageResource(android.R.drawable.ic_menu_upload)
+                setOnClickListener { importRules(listView) }
+            }
+        val row =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                addView(importButton)
+                addView(exportButton)
+            }
+        container.addView(row)
+    }
+
+    private fun exportRules() {
+        val intent =
+            Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+                putExtra(Intent.EXTRA_TITLE, "autodroid-rules.json")
+            }
+        startActivityForResult(intent, REQUEST_EXPORT)
+    }
+
+    private fun importRules(listView: ListView) {
+        val intent =
+            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+            }
+        startActivityForResult(intent, REQUEST_IMPORT)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val uri = data?.data ?: return
+        when (requestCode) {
+            REQUEST_EXPORT -> {
+                contentResolver.openOutputStream(uri)?.use { output ->
+                    output.write(RuleStore().encode(Runtime.engine.rules()).toByteArray())
+                }
+                Toast.makeText(this, "Rules exported", Toast.LENGTH_SHORT).show()
+            }
+            REQUEST_IMPORT -> {
+                val payload = contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() } ?: return
+                val imported = RuleStore().decode(payload)
+                if (imported.isEmpty()) {
+                    Toast.makeText(this, "Invalid rules file", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                Runtime.loadRules(imported)
+                Runtime.saveRules(this)
+                DataSmsRegistrar.refresh(this)
+                render(listView)
+                Toast.makeText(this, "Rules imported", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun requestNotificationPermission() {
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -134,6 +209,8 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         private const val REQUEST_NOTIFICATIONS = 1001
         private const val REQUEST_SMS = 1002
+        private const val REQUEST_EXPORT = 2001
+        private const val REQUEST_IMPORT = 2002
     }
 
     fun render(listView: ListView) {

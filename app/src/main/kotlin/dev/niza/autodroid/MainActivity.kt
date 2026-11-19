@@ -62,6 +62,11 @@ class MainActivity : AppCompatActivity() {
         val ruleId = intent?.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
         intent.removeExtra(Runtime.EXTRA_RULE_ID)
         val rule = Runtime.engine.rules().firstOrNull { it.id == ruleId } ?: return
+        val position = Runtime.engine.rules().indexOfFirst { it.id == ruleId }
+        if (position >= 0) {
+            listView.smoothScrollToPosition(position)
+            listView.setItemChecked(position, true)
+        }
         RuleEditor(this).editRule(rule, listView)
     }
 

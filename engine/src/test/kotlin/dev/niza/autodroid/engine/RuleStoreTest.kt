@@ -19,4 +19,33 @@ class RuleStoreTest {
 
         assertEquals(rules, store.decode(store.encode(rules)))
     }
+
+    @Test
+    fun `decode invalid payload returns empty list`() {
+        val store = RuleStore()
+
+        assertEquals(emptyList(), store.decode("{"))
+        assertEquals(emptyList(), store.decode("[]"))
+    }
+
+    @Test
+    fun `decode unknown trigger type returns empty list`() {
+        val store = RuleStore()
+        val payload =
+            """
+            [
+              {
+                "id": "r1",
+                "name": "Sample",
+                "trigger": {
+                  "type": "unknown",
+                  "id": "t1"
+                },
+                "actions": []
+              }
+            ]
+            """.trimIndent()
+
+        assertEquals(emptyList(), store.decode(payload))
+    }
 }

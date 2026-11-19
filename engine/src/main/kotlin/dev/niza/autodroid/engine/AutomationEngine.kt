@@ -63,7 +63,7 @@ data class ExecutionReport(
         get() = actionResults.all { it.success }
 }
 
-interface ActionExecutor {
+fun interface ActionExecutor {
     fun execute(action: Action): ActionResult
 }
 

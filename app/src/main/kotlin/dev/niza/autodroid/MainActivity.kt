@@ -1,6 +1,7 @@
 package dev.niza.autodroid
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -24,6 +25,8 @@ import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.engine.Rule
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var listView: ListView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Runtime.initialize(this)
@@ -31,9 +34,11 @@ class MainActivity : AppCompatActivity() {
         DataSmsRegistrar.refresh(this)
         requestNotificationPermission()
         requestSmsPermission()
-        val listView = ListView(this)
+        listView = ListView(this)
         setupAddButton(listView)
         render(listView)
+
+        handleNotificationTarget(intent, listView)
 
         listView.setOnItemClickListener { _, _, position, _ ->
             editRule(Runtime.engine.rules()[position], listView)
@@ -46,6 +51,17 @@ class MainActivity : AppCompatActivity() {
             render(listView)
             true
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (this::listView.isInitialized) handleNotificationTarget(intent, listView)
+    }
+
+    private fun handleNotificationTarget(intent: Intent?, listView: ListView) {
+        val ruleId = intent?.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
+        val rule = Runtime.engine.rules().firstOrNull { it.id == ruleId } ?: return
+        editRule(rule, listView)
     }
 
     private fun setupAddButton(listView: ListView) {

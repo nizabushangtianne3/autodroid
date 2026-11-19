@@ -21,6 +21,7 @@ import dev.niza.autodroid.engine.SendDataSmsAction
 object Runtime {
     private const val RULES_FILE = "rules.json"
     private const val ACTION_CHANNEL = "automation_actions"
+    const val EXTRA_RULE_ID = "rule_id"
 
     val engine = AutomationEngine { action ->
         runCatching { execute(action) }.fold(
@@ -79,7 +80,8 @@ object Runtime {
                     appContext,
                     action.id.hashCode(),
                     Intent(appContext, MainActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra(EXTRA_RULE_ID, action.id.removePrefix("action-")),
                     android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE,
                 ),
             )

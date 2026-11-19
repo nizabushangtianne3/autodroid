@@ -46,21 +46,15 @@ class RuleEditor(private val activity: MainActivity) {
                     },
                 )
             }
-        val triggerHintFor = { typePosition: Int ->
-            when (typePosition) {
-                1 -> "App package name"
-                2 -> "Data SMS destination port"
-                else -> "Link host"
-            }
-        }
+        val triggerHintFor = RuleEditorLogic::triggerHint
         val triggerValue =
             AutoCompleteTextView(activity).apply {
                 hint =
                     triggerHintFor(
                         when (rule.trigger) {
-                            is AppLaunchedTrigger -> 1
-                            is DataSmsReceivedTrigger -> 2
-                            else -> 0
+                            is AppLaunchedTrigger -> RuleEditorLogic.TYPE_APP
+                            is DataSmsReceivedTrigger -> RuleEditorLogic.TYPE_DATA_SMS
+                            else -> RuleEditorLogic.TYPE_LINK
                         },
                     )
                 setText(rule.trigger.value)
@@ -110,20 +104,8 @@ class RuleEditor(private val activity: MainActivity) {
                     },
                 )
             }
-        val actionHintFor = { typePosition: Int ->
-            when (typePosition) {
-                1 -> "URL"
-                2 -> "Destination phone number"
-                else -> "Notification title"
-            }
-        }
-        val actionExtraHintFor = { typePosition: Int ->
-            when (typePosition) {
-                1 -> "Unused"
-                2 -> "Payload hex"
-                else -> "Notification body"
-            }
-        }
+        val actionHintFor = RuleEditorLogic::actionHint
+        val actionExtraHintFor = RuleEditorLogic::actionExtraHint
         val actionPort =
             EditText(activity).apply {
                 hint = "Data SMS destination port"
@@ -135,9 +117,9 @@ class RuleEditor(private val activity: MainActivity) {
                 hint =
                     actionHintFor(
                         when (rule.actions.firstOrNull()) {
-                            is OpenUrlAction -> 1
-                            is SendDataSmsAction -> 2
-                            else -> 0
+                            is OpenUrlAction -> RuleEditorLogic.ACTION_OPEN_URL
+                            is SendDataSmsAction -> RuleEditorLogic.ACTION_SEND_DATA_SMS
+                            else -> RuleEditorLogic.ACTION_NOTIFY
                         },
                     )
                 setText(
@@ -206,25 +188,16 @@ class RuleEditor(private val activity: MainActivity) {
             .setPositiveButton("Save") { _, _ ->
                 val sequence = rule.id.substringAfterLast('-')
                 val value = triggerValue.text.toString()
-                val packageNamePattern = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$")
-                if (triggerType.selectedItemPosition == 1 && !packageNamePattern.matches(value)) {
-                    android.widget.Toast.makeText(activity, "Invalid Android package name", android.widget.Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                if (triggerType.selectedItemPosition == 0 && value.isBlank()) {
-                    android.widget.Toast.makeText(activity, "Link host is required", android.widget.Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-                val triggerPort = value.toIntOrNull()
-                if (triggerType.selectedItemPosition == 2 && (triggerPort == null || triggerPort !in 1..65535)) {
-                    android.widget.Toast.makeText(activity, "Data SMS port must be 1-65535", android.widget.Toast.LENGTH_SHORT).show()
+                val triggerValidationError = RuleEditorLogic.validateTrigger(triggerType.selectedItemPosition, value)
+                if (triggerValidationError != null) {
+                    android.widget.Toast.makeText(activity, triggerValidationError, android.widget.Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val actionValueText = actionValue.text.toString()
                 val actionExtraText = actionExtra.text.toString()
                 val actionPortText = actionPort.text.toString()
                 val actionValidationError =
-                    validateAction(actionType.selectedItemPosition, actionValueText, actionExtraText, actionPortText)
+                    RuleEditorLogic.validateAction(actionType.selectedItemPosition, actionValueText, actionExtraText, actionPortText)
                 if (actionValidationError != null) {
                     android.widget.Toast.makeText(activity, actionValidationError, android.widget.Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
@@ -233,8 +206,13 @@ class RuleEditor(private val activity: MainActivity) {
                 val triggerId = rule.trigger.id
                 val trigger =
                     when (triggerType.selectedItemPosition) {
-                        1 -> AppLaunchedTrigger(triggerId, value)
-                        2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = sender)
+                        RuleEditorLogic.TYPE_APP -> AppLaunchedTrigger(triggerId, value)
+                        RuleEditorLogic.TYPE_DATA_SMS ->
+                            DataSmsReceivedTrigger(
+                                triggerId,
+                                destinationPort = value.toIntOrNull() ?: 0,
+                                sender = sender,
+                            )
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }
                 val updated =
@@ -262,31 +240,6 @@ class RuleEditor(private val activity: MainActivity) {
             .show()
     }
 
-    private fun validateAction(
-        typePosition: Int,
-        value: String,
-        extra: String,
-        port: String,
-    ): String? {
-        if (value.isBlank()) {
-            return when (typePosition) {
-                1 -> "URL is required"
-                2 -> "Destination phone number is required"
-                else -> "Notification title is required"
-            }
-        }
-        return when (typePosition) {
-            1 -> null
-            2 ->
-                when {
-                    port.toIntOrNull() !in 1..65535 -> "Action port must be 1-65535"
-                    parseHex(extra).isEmpty() -> "Payload hex is required"
-                    else -> null
-                }
-            else -> if (extra.isBlank()) "Notification body is required" else null
-        }
-    }
-
     private fun buildAction(
         sequence: String,
         typePosition: Int,
@@ -296,22 +249,16 @@ class RuleEditor(private val activity: MainActivity) {
     ): dev.niza.autodroid.engine.Action {
         val actionId = "action-$sequence"
         return when (typePosition) {
-            1 -> OpenUrlAction(actionId, value)
-            2 ->
+            RuleEditorLogic.ACTION_OPEN_URL -> OpenUrlAction(actionId, value)
+            RuleEditorLogic.ACTION_SEND_DATA_SMS ->
                 SendDataSmsAction(
                     actionId,
                     destinationPort = port.toIntOrNull() ?: 0,
                     sender = value,
-                    payload = parseHex(extra),
+                    payload = RuleEditorLogic.parseHex(extra),
                 )
             else -> NotifyAction(actionId, title = value, body = extra)
         }
-    }
-
-    private fun parseHex(value: String): ByteArray {
-        val clean = value.removePrefix("0x").filterNot { it.isWhitespace() }
-        if (clean.isEmpty() || clean.length % 2 != 0) return ByteArray(0)
-        return clean.chunked(2).mapNotNull { it.toIntOrNull(16)?.toByte() }.toByteArray()
     }
 
     private fun launchablePackages(activity: MainActivity): List<String> =

@@ -1,3 +1,7 @@
 .autodroid-release.jks
 
+.gradle/
+.kotlin/
+build/
+
 *.jks

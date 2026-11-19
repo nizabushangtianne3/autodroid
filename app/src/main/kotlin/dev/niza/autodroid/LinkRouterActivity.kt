@@ -23,7 +23,7 @@ class LinkRouterActivity : AppCompatActivity() {
         Runtime.initialize(this)
         Runtime.loadRules(this)
         DataSmsRegistrar.refresh(this)
-        Runtime.engine.dispatch(
+        Runtime.dispatchAndReport(
             LinkOpenedEvent(
                 scheme = uri.scheme,
                 host = uri.host,

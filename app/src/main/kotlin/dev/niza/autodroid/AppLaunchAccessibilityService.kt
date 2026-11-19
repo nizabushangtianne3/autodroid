@@ -17,7 +17,7 @@ class AppLaunchAccessibilityService : AccessibilityService() {
         if (packageName == lastPackageName && now - lastDispatchAtMs < DEBOUNCE_MS) return
         lastPackageName = packageName
         lastDispatchAtMs = now
-        Runtime.engine.dispatch(AppLaunchedEvent(packageName))
+        Runtime.dispatchAndReport(AppLaunchedEvent(packageName))
     }
 
     override fun onInterrupt() = Unit

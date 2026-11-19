@@ -31,6 +31,44 @@ object Runtime {
             )
         }
 
+    fun dispatchAndReport(event: dev.niza.autodroid.engine.TriggerEvent) {
+        val report = engine.dispatch(event)
+        reportExecution(report)
+    }
+
+    private fun reportExecution(report: dev.niza.autodroid.engine.ExecutionReport) {
+        val appContext = appContext ?: return
+        if (report.matchedRuleCount == 0) return
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        val manager = NotificationManagerCompat.from(appContext)
+        val title = if (report.success) "Automation succeeded" else "Automation failed"
+        val text =
+            buildString {
+                append("Matched rules: ${report.matchedRuleCount}")
+                report.actionResults.forEach { result ->
+                    append('\n')
+                    append("${result.actionId}: ${if (result.success) "OK" else "FAILED"}")
+                    result.message?.let { append(" • $it") }
+                }
+            }
+        manager.notify(
+            "execution-report".hashCode(),
+            NotificationCompat
+                .Builder(appContext, ACTION_CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_notify_error)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                .build(),
+        )
+    }
+
     fun loadRules(context: Context) {
         val payload =
             context.openFileInput(RULES_FILE).use { input ->

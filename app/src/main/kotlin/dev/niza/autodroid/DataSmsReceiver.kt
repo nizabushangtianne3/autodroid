@@ -17,7 +17,7 @@ class DataSmsReceiver : BroadcastReceiver() {
         val message = messages.firstOrNull() ?: return
         Runtime.initialize(context)
         Runtime.loadRules(context)
-        Runtime.engine.dispatch(
+        Runtime.dispatchAndReport(
             DataSmsReceivedEvent(
                 destinationPort = port,
                 sender = message.originatingAddress ?: return,

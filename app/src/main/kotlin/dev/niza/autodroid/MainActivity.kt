@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleNotificationTarget(intent: Intent?, listView: ListView) {
         val ruleId = intent?.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
+        intent.removeExtra(Runtime.EXTRA_RULE_ID)
         val rule = Runtime.engine.rules().firstOrNull { it.id == ruleId } ?: return
         editRule(rule, listView)
     }
@@ -83,7 +84,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createRule(listView: ListView) {
-        val sequence = Runtime.engine.rules().size + 1
+        val existingIds = Runtime.engine.rules().map { it.id }.toSet()
+        val sequence = generateSequence(1) { it + 1 }.first { "sample-$it" !in existingIds }
         val rule = Rule(
             id = "sample-$sequence",
             name = "Sample rule $sequence",
@@ -240,6 +242,15 @@ class MainActivity : AppCompatActivity() {
                 val packageNamePattern = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$")
                 if (triggerType.selectedItemPosition == 1 && !packageNamePattern.matches(value)) {
                     android.widget.Toast.makeText(this, "Invalid Android package name", android.widget.Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (triggerType.selectedItemPosition == 0 && value.isBlank()) {
+                    android.widget.Toast.makeText(this, "Link host is required", android.widget.Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                val triggerPort = value.toIntOrNull()
+                if (triggerType.selectedItemPosition == 2 && (triggerPort == null || triggerPort !in 1..65535)) {
+                    android.widget.Toast.makeText(this, "Data SMS port must be 1-65535", android.widget.Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val sender = triggerSender.text.toString().trim().ifBlank { null }

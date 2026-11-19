@@ -9,11 +9,12 @@ sealed interface Trigger {
 }
 
 val Trigger.value: String?
-    get() = when (this) {
-        is LinkOpenedTrigger -> host
-        is DataSmsReceivedTrigger -> destinationPort.toString()
-        is AppLaunchedTrigger -> packageName
-    }
+    get() =
+        when (this) {
+            is LinkOpenedTrigger -> host
+            is DataSmsReceivedTrigger -> destinationPort.toString()
+            is AppLaunchedTrigger -> packageName
+        }
 
 @Serializable
 @SerialName("link")

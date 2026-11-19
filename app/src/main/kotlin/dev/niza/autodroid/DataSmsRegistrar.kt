@@ -23,9 +23,10 @@ object DataSmsRegistrar {
     }
 
     private fun readEnabledPorts(context: Context): Set<Int> {
-        val payload = runCatching {
-            context.openFileInput("rules.json").use { it.bufferedReader().readText() }
-        }.getOrNull() ?: return emptySet()
+        val payload =
+            runCatching {
+                context.openFileInput("rules.json").use { it.bufferedReader().readText() }
+            }.getOrNull() ?: return emptySet()
         return RuleStore().decode(payload)
             .filter { it.enabled }
             .mapNotNull { it.trigger as? DataSmsReceivedTrigger }
@@ -36,11 +37,15 @@ object DataSmsRegistrar {
 
     private fun register(port: Int) {
         val appContext = appContext ?: return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                DataSmsReceiver().onReceive(context, intent)
+        val receiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context,
+                    intent: Intent,
+                ) {
+                    DataSmsReceiver().onReceive(context, intent)
+                }
             }
-        }
         ContextCompat.registerReceiver(
             appContext,
             receiver,

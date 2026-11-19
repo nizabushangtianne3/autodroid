@@ -8,6 +8,5 @@ class RuleStore {
 
     fun encode(rules: List<Rule>): String = json.encodeToString(rules)
 
-    fun decode(payload: String): List<Rule> =
-        runCatching { json.decodeFromString<List<Rule>>(payload) }.getOrDefault(emptyList())
+    fun decode(payload: String): List<Rule> = runCatching { json.decodeFromString<List<Rule>>(payload) }.getOrDefault(emptyList())
 }

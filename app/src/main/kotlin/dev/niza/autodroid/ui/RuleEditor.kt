@@ -1,44 +1,50 @@
 package dev.niza.autodroid.ui
 
-import android.widget.EditText
-import android.widget.CheckBox
-import android.widget.Spinner
-import android.widget.LinearLayout
 import android.widget.ArrayAdapter
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ListView
+import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import dev.niza.autodroid.DataSmsRegistrar
+import dev.niza.autodroid.MainActivity
 import dev.niza.autodroid.Runtime
-import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.AppLaunchedTrigger
 import dev.niza.autodroid.engine.DataSmsReceivedTrigger
+import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.OpenUrlAction
+import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.value
-import dev.niza.autodroid.engine.Rule
-import dev.niza.autodroid.MainActivity
 
 class RuleEditor(private val activity: MainActivity) {
-    fun editRule(rule: Rule, listView: ListView) {
-        val name = EditText(activity).apply {
-            hint = "Rule name"
-            setText(rule.name)
-        }
-        val triggerType = Spinner(activity).apply {
-            adapter = ArrayAdapter(
-                activity,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf("Link", "App", "Data SMS"),
-            )
-            setSelection(
-                when (rule.trigger) {
-                    is AppLaunchedTrigger -> 1
-                    is DataSmsReceivedTrigger -> 2
-                    else -> 0
-                },
-            )
-        }
+    fun editRule(
+        rule: Rule,
+        listView: ListView,
+    ) {
+        val name =
+            EditText(activity).apply {
+                hint = "Rule name"
+                setText(rule.name)
+            }
+        val triggerType =
+            Spinner(activity).apply {
+                adapter =
+                    ArrayAdapter(
+                        activity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        listOf("Link", "App", "Data SMS"),
+                    )
+                setSelection(
+                    when (rule.trigger) {
+                        is AppLaunchedTrigger -> 1
+                        is DataSmsReceivedTrigger -> 2
+                        else -> 0
+                    },
+                )
+            }
         val triggerHintFor = { typePosition: Int ->
             when (typePosition) {
                 1 -> "App package name"
@@ -46,41 +52,52 @@ class RuleEditor(private val activity: MainActivity) {
                 else -> "Link host"
             }
         }
-        val triggerValue = EditText(activity).apply {
-            hint = triggerHintFor(
-                when (rule.trigger) {
-                    is AppLaunchedTrigger -> 1
-                    is DataSmsReceivedTrigger -> 2
-                    else -> 0
-                },
-            )
-            setText(rule.trigger.value)
-        }
-        triggerType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                triggerValue.hint = triggerHintFor(position)
+        val triggerValue =
+            EditText(activity).apply {
+                hint =
+                    triggerHintFor(
+                        when (rule.trigger) {
+                            is AppLaunchedTrigger -> 1
+                            is DataSmsReceivedTrigger -> 2
+                            else -> 0
+                        },
+                    )
+                setText(rule.trigger.value)
             }
+        triggerType.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>?,
+                    view: android.view.View?,
+                    position: Int,
+                    id: Long,
+                ) {
+                    triggerValue.hint = triggerHintFor(position)
+                }
 
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-        }
-        val triggerSender = EditText(activity).apply {
-            hint = "SMS sender (optional)"
-            setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
-        }
-        val actionType = Spinner(activity).apply {
-            adapter = ArrayAdapter(
-                activity,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf("Notify", "Open URL", "Send Data SMS"),
-            )
-            setSelection(
-                when (rule.actions.firstOrNull()) {
-                    is OpenUrlAction -> 1
-                    is SendDataSmsAction -> 2
-                    else -> 0
-                },
-            )
-        }
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            }
+        val triggerSender =
+            EditText(activity).apply {
+                hint = "SMS sender (optional)"
+                setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
+            }
+        val actionType =
+            Spinner(activity).apply {
+                adapter =
+                    ArrayAdapter(
+                        activity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        listOf("Notify", "Open URL", "Send Data SMS"),
+                    )
+                setSelection(
+                    when (rule.actions.firstOrNull()) {
+                        is OpenUrlAction -> 1
+                        is SendDataSmsAction -> 2
+                        else -> 0
+                    },
+                )
+            }
         val actionHintFor = { typePosition: Int ->
             when (typePosition) {
                 1 -> "URL"
@@ -95,69 +112,82 @@ class RuleEditor(private val activity: MainActivity) {
                 else -> "Notification body"
             }
         }
-        val actionPort = EditText(activity).apply {
-            hint = "Data SMS destination port"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-            setText((rule.actions.firstOrNull() as? SendDataSmsAction)?.destinationPort?.toString().orEmpty())
-        }
-        val actionValue = EditText(activity).apply {
-            hint = actionHintFor(
-                when (rule.actions.firstOrNull()) {
-                    is OpenUrlAction -> 1
-                    is SendDataSmsAction -> 2
-                    else -> 0
-                },
-            )
-            setText(
-                when (val action = rule.actions.firstOrNull()) {
-                    is NotifyAction -> action.title
-                    is OpenUrlAction -> action.url
-                    is SendDataSmsAction -> action.sender
-                    else -> ""
-                },
-            )
-        }
-        val actionExtra = EditText(activity).apply {
-            hint = actionExtraHintFor(
-                when (rule.actions.firstOrNull()) {
-                    is OpenUrlAction -> 1
-                    is SendDataSmsAction -> 2
-                    else -> 0
-                },
-            )
-            setText(
-                when (val action = rule.actions.firstOrNull()) {
-                    is NotifyAction -> action.body
-                    is SendDataSmsAction -> action.payload.joinToString("") { "%02X".format(it) }
-                    else -> ""
-                },
-            )
-        }
-        actionType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                actionValue.hint = actionHintFor(position)
-                actionExtra.hint = actionExtraHintFor(position)
+        val actionPort =
+            EditText(activity).apply {
+                hint = "Data SMS destination port"
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                setText((rule.actions.firstOrNull() as? SendDataSmsAction)?.destinationPort?.toString().orEmpty())
             }
+        val actionValue =
+            EditText(activity).apply {
+                hint =
+                    actionHintFor(
+                        when (rule.actions.firstOrNull()) {
+                            is OpenUrlAction -> 1
+                            is SendDataSmsAction -> 2
+                            else -> 0
+                        },
+                    )
+                setText(
+                    when (val action = rule.actions.firstOrNull()) {
+                        is NotifyAction -> action.title
+                        is OpenUrlAction -> action.url
+                        is SendDataSmsAction -> action.sender
+                        else -> ""
+                    },
+                )
+            }
+        val actionExtra =
+            EditText(activity).apply {
+                hint =
+                    actionExtraHintFor(
+                        when (rule.actions.firstOrNull()) {
+                            is OpenUrlAction -> 1
+                            is SendDataSmsAction -> 2
+                            else -> 0
+                        },
+                    )
+                setText(
+                    when (val action = rule.actions.firstOrNull()) {
+                        is NotifyAction -> action.body
+                        is SendDataSmsAction -> action.payload.joinToString("") { "%02X".format(it) }
+                        else -> ""
+                    },
+                )
+            }
+        actionType.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>?,
+                    view: android.view.View?,
+                    position: Int,
+                    id: Long,
+                ) {
+                    actionValue.hint = actionHintFor(position)
+                    actionExtra.hint = actionExtraHintFor(position)
+                }
 
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-        }
-        val enabled = CheckBox(activity).apply {
-            text = "Enabled"
-            isChecked = rule.enabled
-        }
-        val form = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 24, 48, 0)
-            addView(name)
-            addView(triggerType)
-            addView(triggerValue)
-            addView(triggerSender)
-            addView(actionType)
-            addView(actionValue)
-            addView(actionPort)
-            addView(actionExtra)
-            addView(enabled)
-        }
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            }
+        val enabled =
+            CheckBox(activity).apply {
+                text = "Enabled"
+                isChecked = rule.enabled
+            }
+        val form =
+            LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(48, 24, 48, 0)
+                addView(name)
+                addView(triggerType)
+                addView(triggerValue)
+                addView(triggerSender)
+                addView(actionType)
+                addView(actionValue)
+                addView(actionPort)
+                addView(actionExtra)
+                addView(enabled)
+            }
         AlertDialog.Builder(activity)
             .setTitle("Edit rule")
             .setView(form)
@@ -181,32 +211,36 @@ class RuleEditor(private val activity: MainActivity) {
                 val actionValueText = actionValue.text.toString()
                 val actionExtraText = actionExtra.text.toString()
                 val actionPortText = actionPort.text.toString()
-                val actionValidationError = validateAction(actionType.selectedItemPosition, actionValueText, actionExtraText, actionPortText)
+                val actionValidationError =
+                    validateAction(actionType.selectedItemPosition, actionValueText, actionExtraText, actionPortText)
                 if (actionValidationError != null) {
                     android.widget.Toast.makeText(activity, actionValidationError, android.widget.Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 val sender = triggerSender.text.toString().trim().ifBlank { null }
                 val triggerId = rule.trigger.id
-                val trigger = when (triggerType.selectedItemPosition) {
-                    1 -> AppLaunchedTrigger(triggerId, value)
-                    2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = sender)
-                    else -> LinkOpenedTrigger(triggerId, host = value)
-                }
-                val updated = rule.copy(
-                    name = name.text.toString(),
-                    trigger = trigger,
-                    actions = listOf(
-                        buildAction(
-                            sequence,
-                            actionType.selectedItemPosition,
-                            actionValueText,
-                            actionExtraText,
-                            actionPortText,
-                        ),
-                    ),
-                    enabled = enabled.isChecked,
-                )
+                val trigger =
+                    when (triggerType.selectedItemPosition) {
+                        1 -> AppLaunchedTrigger(triggerId, value)
+                        2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = sender)
+                        else -> LinkOpenedTrigger(triggerId, host = value)
+                    }
+                val updated =
+                    rule.copy(
+                        name = name.text.toString(),
+                        trigger = trigger,
+                        actions =
+                            listOf(
+                                buildAction(
+                                    sequence,
+                                    actionType.selectedItemPosition,
+                                    actionValueText,
+                                    actionExtraText,
+                                    actionPortText,
+                                ),
+                            ),
+                        enabled = enabled.isChecked,
+                    )
                 Runtime.engine.replace(updated)
                 Runtime.saveRules(activity)
                 DataSmsRegistrar.refresh(activity)
@@ -216,7 +250,12 @@ class RuleEditor(private val activity: MainActivity) {
             .show()
     }
 
-    private fun validateAction(typePosition: Int, value: String, extra: String, port: String): String? {
+    private fun validateAction(
+        typePosition: Int,
+        value: String,
+        extra: String,
+        port: String,
+    ): String? {
         if (value.isBlank()) {
             return when (typePosition) {
                 1 -> "URL is required"
@@ -226,25 +265,33 @@ class RuleEditor(private val activity: MainActivity) {
         }
         return when (typePosition) {
             1 -> null
-            2 -> when {
-                port.toIntOrNull() !in 1..65535 -> "Action port must be 1-65535"
-                parseHex(extra).isEmpty() -> "Payload hex is required"
-                else -> null
-            }
+            2 ->
+                when {
+                    port.toIntOrNull() !in 1..65535 -> "Action port must be 1-65535"
+                    parseHex(extra).isEmpty() -> "Payload hex is required"
+                    else -> null
+                }
             else -> if (extra.isBlank()) "Notification body is required" else null
         }
     }
 
-    private fun buildAction(sequence: String, typePosition: Int, value: String, extra: String, port: String): dev.niza.autodroid.engine.Action {
+    private fun buildAction(
+        sequence: String,
+        typePosition: Int,
+        value: String,
+        extra: String,
+        port: String,
+    ): dev.niza.autodroid.engine.Action {
         val actionId = "action-$sequence"
         return when (typePosition) {
             1 -> OpenUrlAction(actionId, value)
-            2 -> SendDataSmsAction(
-                actionId,
-                destinationPort = port.toIntOrNull() ?: 0,
-                sender = value,
-                payload = parseHex(extra),
-            )
+            2 ->
+                SendDataSmsAction(
+                    actionId,
+                    destinationPort = port.toIntOrNull() ?: 0,
+                    sender = value,
+                    payload = parseHex(extra),
+                )
             else -> NotifyAction(actionId, title = value, body = extra)
         }
     }

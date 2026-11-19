@@ -1,7 +1,6 @@
 package dev.niza.autodroid
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import dev.niza.autodroid.engine.LinkOpenedEvent

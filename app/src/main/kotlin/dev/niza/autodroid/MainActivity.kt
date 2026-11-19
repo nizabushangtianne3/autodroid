@@ -5,22 +5,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.LinearLayout
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.ListView
-import androidx.appcompat.app.AlertDialog
-import dev.niza.autodroid.ui.RuleEditor
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatActivity
-import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.AppLaunchedTrigger
 import dev.niza.autodroid.engine.DataSmsReceivedTrigger
+import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.OpenUrlAction
+import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.value
-import dev.niza.autodroid.engine.Rule
+import dev.niza.autodroid.ui.RuleEditor
 
 class MainActivity : AppCompatActivity() {
     private lateinit var listView: ListView
@@ -56,7 +55,10 @@ class MainActivity : AppCompatActivity() {
         if (this::listView.isInitialized) handleNotificationTarget(intent, listView)
     }
 
-    private fun handleNotificationTarget(intent: Intent?, listView: ListView) {
+    private fun handleNotificationTarget(
+        intent: Intent?,
+        listView: ListView,
+    ) {
         val ruleId = intent?.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
         intent.removeExtra(Runtime.EXTRA_RULE_ID)
         val rule = Runtime.engine.rules().firstOrNull { it.id == ruleId } ?: return
@@ -64,17 +66,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupAddButton(listView: ListView) {
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        val addButton = com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
-            setImageResource(android.R.drawable.ic_input_add)
-            setOnClickListener { createRule(listView) }
-        }
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-        ).apply { setMargins(24, 24, 24, 24) }
+        val container =
+            LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+        val addButton =
+            com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
+                setImageResource(android.R.drawable.ic_input_add)
+                setOnClickListener { createRule(listView) }
+            }
+        val params =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { setMargins(24, 24, 24, 24) }
         addButton.layoutParams = params
         container.addView(listView)
         container.addView(addButton)
@@ -84,12 +89,13 @@ class MainActivity : AppCompatActivity() {
     private fun createRule(listView: ListView) {
         val existingIds = Runtime.engine.rules().map { it.id }.toSet()
         val sequence = generateSequence(1) { it + 1 }.first { "sample-$it" !in existingIds }
-        val rule = Rule(
-            id = "sample-$sequence",
-            name = "Sample rule $sequence",
-            trigger = LinkOpenedTrigger("trigger-$sequence", host = ""),
-            actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
-        )
+        val rule =
+            Rule(
+                id = "sample-$sequence",
+                name = "Sample rule $sequence",
+                trigger = LinkOpenedTrigger("trigger-$sequence", host = ""),
+                actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
+            )
         RuleEditor(this).editRule(rule, listView)
     }
 
@@ -127,24 +133,27 @@ class MainActivity : AppCompatActivity() {
 
     fun render(listView: ListView) {
         val rules = Runtime.engine.rules()
-        listView.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            rules.map { rule ->
-                val kind = when (rule.trigger) {
-                    is AppLaunchedTrigger -> "App"
-                    is DataSmsReceivedTrigger -> "SMS"
-                    else -> "Link"
-                }
-                val actionKind = when (rule.actions.firstOrNull()) {
-                    is OpenUrlAction -> "Open URL"
-                    is SendDataSmsAction -> "Send SMS"
-                    else -> "Notify"
-                }
-                "${rule.name} • $kind • ${rule.trigger.value.orEmpty()} • $actionKind"
-                    .let { if (!rule.enabled) "$it • disabled" else it }
-            },
-        )
+        listView.adapter =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_list_item_1,
+                rules.map { rule ->
+                    val kind =
+                        when (rule.trigger) {
+                            is AppLaunchedTrigger -> "App"
+                            is DataSmsReceivedTrigger -> "SMS"
+                            else -> "Link"
+                        }
+                    val actionKind =
+                        when (rule.actions.firstOrNull()) {
+                            is OpenUrlAction -> "Open URL"
+                            is SendDataSmsAction -> "Send SMS"
+                            else -> "Notify"
+                        }
+                    "${rule.name} • $kind • ${rule.trigger.value.orEmpty()} • $actionKind"
+                        .let { if (!rule.enabled) "$it • disabled" else it }
+                },
+            )
         listView.choiceMode = ListView.CHOICE_MODE_NONE
     }
 }

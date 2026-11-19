@@ -36,7 +36,7 @@ class RuleEditor(private val activity: MainActivity) {
                     ArrayAdapter(
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
-                        listOf("Link", "App", "Data SMS"),
+                        listOf("Link", "App", "Data SMS", "Schedule"),
                     )
                 setSelection(
                     when (rule.trigger) {
@@ -54,6 +54,7 @@ class RuleEditor(private val activity: MainActivity) {
                         when (rule.trigger) {
                             is AppLaunchedTrigger -> RuleEditorLogic.TYPE_APP
                             is DataSmsReceivedTrigger -> RuleEditorLogic.TYPE_DATA_SMS
+                            is dev.niza.autodroid.engine.ScheduleTrigger -> RuleEditorLogic.TYPE_SCHEDULE
                             else -> RuleEditorLogic.TYPE_LINK
                         },
                     )
@@ -212,6 +213,11 @@ class RuleEditor(private val activity: MainActivity) {
                                 triggerId,
                                 destinationPort = value.toIntOrNull() ?: 0,
                                 sender = sender,
+                            )
+                        RuleEditorLogic.TYPE_SCHEDULE ->
+                            dev.niza.autodroid.engine.ScheduleTrigger(
+                                triggerId,
+                                intervalMillis = value.toLongOrNull() ?: 0,
                             )
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }

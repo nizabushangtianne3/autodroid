@@ -14,6 +14,7 @@ val Trigger.value: String?
             is LinkOpenedTrigger -> host
             is DataSmsReceivedTrigger -> destinationPort.toString()
             is AppLaunchedTrigger -> packageName
+            is ScheduleTrigger -> "every ${intervalMillis}ms"
         }
 
 val Action.summary: String
@@ -46,6 +47,14 @@ data class DataSmsReceivedTrigger(
 data class AppLaunchedTrigger(
     override val id: String,
     val packageName: String,
+) : Trigger
+
+@Serializable
+@SerialName("schedule")
+data class ScheduleTrigger(
+    override val id: String,
+    val intervalMillis: Long,
+    val startAtElapsedRealtime: Long = 0,
 ) : Trigger
 
 @Serializable

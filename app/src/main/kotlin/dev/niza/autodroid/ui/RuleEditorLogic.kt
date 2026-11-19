@@ -5,6 +5,7 @@ object RuleEditorLogic {
     const val TYPE_LINK = 0
     const val TYPE_APP = 1
     const val TYPE_DATA_SMS = 2
+    const val TYPE_SCHEDULE = 3
 
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
@@ -14,6 +15,7 @@ object RuleEditorLogic {
         when (typePosition) {
             TYPE_APP -> "App package name"
             TYPE_DATA_SMS -> "Data SMS destination port"
+            TYPE_SCHEDULE -> "Interval milliseconds"
             else -> "Link host"
         }
 
@@ -43,10 +45,15 @@ object RuleEditorLogic {
                     "Invalid Android package name"
                 }
             TYPE_LINK -> if (value.isBlank()) "Link host is required" else null
-            else -> {
+            TYPE_DATA_SMS -> {
                 val port = value.toIntOrNull()
                 if (port == null || port !in 1..65535) "Data SMS port must be 1-65535" else null
             }
+            TYPE_SCHEDULE -> {
+                val interval = value.toLongOrNull()
+                if (interval == null || interval < 1000) "Interval must be at least 1000ms" else null
+            }
+            else -> null
         }
 
     fun validateAction(
@@ -90,6 +97,7 @@ object RuleEditorLogic {
             when (filterPosition) {
                 TYPE_APP -> trigger is dev.niza.autodroid.engine.AppLaunchedTrigger
                 TYPE_DATA_SMS -> trigger is dev.niza.autodroid.engine.DataSmsReceivedTrigger
+                TYPE_SCHEDULE -> trigger is dev.niza.autodroid.engine.ScheduleTrigger
                 else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
             }
 
@@ -104,17 +112,18 @@ object RuleEditorLogic {
                 else -> action is dev.niza.autodroid.engine.NotifyAction
             }
 
-    fun triggerLabel(trigger: dev.niza.autodroid.engine.Trigger): String =
-        when (trigger) {
-            is dev.niza.autodroid.engine.AppLaunchedTrigger -> "App"
-            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "SMS"
-            else -> "Link"
-        }
-
     fun actionLabel(action: dev.niza.autodroid.engine.Action?): String =
         when (action) {
             is dev.niza.autodroid.engine.OpenUrlAction -> "Open URL"
             is dev.niza.autodroid.engine.SendDataSmsAction -> "Send SMS"
             else -> "Notify"
+        }
+
+    fun triggerLabel(trigger: dev.niza.autodroid.engine.Trigger): String =
+        when (trigger) {
+            is dev.niza.autodroid.engine.AppLaunchedTrigger -> "App"
+            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "SMS"
+            is dev.niza.autodroid.engine.ScheduleTrigger -> "Schedule"
+            else -> "Link"
         }
 }

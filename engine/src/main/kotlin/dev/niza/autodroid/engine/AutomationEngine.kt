@@ -37,6 +37,10 @@ data class AppLaunchedEvent(
     }
 }
 
+class ScheduleFiredEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ScheduleTrigger
+}
+
 class AutomationEngine(
     private val executor: ActionExecutor,
 ) {

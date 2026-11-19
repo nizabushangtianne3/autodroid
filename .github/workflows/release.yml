@@ -17,7 +17,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew ktlintCheck :engine:test :app:testDebugUnitTest :app:assembleRelease --no-daemon
+      - run: ./gradlew ktlintCheck :engine:test :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease --no-daemon
       - name: Rename APK
         run: |
           tag="${GITHUB_REF_NAME}"

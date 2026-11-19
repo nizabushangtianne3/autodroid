@@ -1,11 +1,11 @@
 package dev.niza.autodroid
 
 import android.Manifest
-import android.text.InputType
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         Runtime.loadRules(this)
         requestNotificationPermission()
         val listView = ListView(this)
-        setContentView(listView)
+        setupAddButton(listView)
         render(listView)
 
         listView.setOnItemClickListener { _, _, position, _ ->
@@ -38,28 +38,78 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun createSampleRule() {
+    private fun setupAddButton(listView: ListView) {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        val addButton = com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
+            setImageResource(android.R.drawable.ic_input_add)
+            setOnClickListener { createRule(listView) }
+        }
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        ).apply { setMargins(24, 24, 24, 24) }
+        addButton.layoutParams = params
+        container.addView(listView)
+        container.addView(addButton)
+        setContentView(container)
+    }
+
+    private fun createRule(listView: ListView) {
         val sequence = Runtime.engine.rules().size + 1
-        Runtime.engine.register(
-            Rule(
-                id = "sample-$sequence",
-                name = "Sample rule $sequence",
-                trigger = LinkOpenedTrigger("trigger-$sequence", host = "example.com"),
-                actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
-            ),
+        val rule = Rule(
+            id = "sample-$sequence",
+            name = "Sample rule $sequence",
+            trigger = LinkOpenedTrigger("trigger-$sequence", host = "example.com"),
+            actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
         )
+        editRule(rule, listView)
     }
 
     private fun editRule(rule: Rule, listView: ListView) {
-        val input = EditText(this).apply {
-            inputType = InputType.TYPE_CLASS_TEXT
+        val name = EditText(this).apply {
+            hint = "Rule name"
             setText(rule.name)
+        }
+        val host = EditText(this).apply {
+            hint = "Link host"
+            setText((rule.trigger as? LinkOpenedTrigger)?.host.orEmpty())
+        }
+        val title = EditText(this).apply {
+            hint = "Notification title"
+            setText((rule.actions.firstOrNull() as? NotifyAction)?.title.orEmpty())
+        }
+        val body = EditText(this).apply {
+            hint = "Notification body"
+            setText((rule.actions.firstOrNull() as? NotifyAction)?.body.orEmpty())
+        }
+        val form = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 0)
+            addView(name)
+            addView(host)
+            addView(title)
+            addView(body)
         }
         AlertDialog.Builder(this)
             .setTitle("Edit rule")
-            .setView(input)
+            .setView(form)
             .setPositiveButton("Save") { _, _ ->
-                Runtime.engine.replace(rule.copy(name = input.text.toString()))
+                val sequence = rule.id.substringAfterLast('-')
+                val updated = rule.copy(
+                    name = name.text.toString(),
+                    trigger = (rule.trigger as? LinkOpenedTrigger)?.copy(host = host.text.toString())
+                        ?: LinkOpenedTrigger(rule.trigger.id, host = host.text.toString()),
+                    actions = listOf(
+                        NotifyAction(
+                            id = "action-$sequence",
+                            title = title.text.toString(),
+                            body = body.text.toString(),
+                        ),
+                    ),
+                )
+                Runtime.engine.replace(updated)
                 Runtime.saveRules(this)
                 render(listView)
             }

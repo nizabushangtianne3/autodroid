@@ -8,6 +8,26 @@ android {
     namespace = "dev.niza.autodroid"
     compileSdk = 36
 
+    val releaseStoreFile = System.getenv("AUTODROID_RELEASE_STORE_FILE")
+    val releaseStorePassword = System.getenv("AUTODROID_RELEASE_STORE_PASSWORD")
+    val releaseKeyAlias = System.getenv("AUTODROID_RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = System.getenv("AUTODROID_RELEASE_KEY_PASSWORD")
+    if (
+        releaseStoreFile != null &&
+        releaseStorePassword != null &&
+        releaseKeyAlias != null &&
+        releaseKeyPassword != null
+    ) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "dev.niza.autodroid"
         minSdk = 24
@@ -29,7 +49,7 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseStoreFile != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 }

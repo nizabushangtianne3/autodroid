@@ -58,6 +58,15 @@
 2. 构建并上传 signed debug APK 与 release APK（release 当前使用 debug 签名，便于本地安装测试）。
 3. 创建对应的 GitHub Release 并附加 `AutoDroid-<tag>-release.apk` 和 `AutoDroid-<tag>-debug.apk`。
 
+Release APK 使用仓库 Secrets 中配置的专用 keystore 签名：
+
+- `AUTODROID_RELEASE_STORE_BASE64`
+- `AUTODROID_RELEASE_STORE_PASSWORD`
+- `AUTODROID_RELEASE_KEY_ALIAS`
+- `AUTODROID_RELEASE_KEY_PASSWORD`
+
+Secrets 未配置时，CI 无法签名 release APK；本地开发可回退 debug 签名。
+
 ```bash
 git tag v0.1.0
 git push origin v0.1.0

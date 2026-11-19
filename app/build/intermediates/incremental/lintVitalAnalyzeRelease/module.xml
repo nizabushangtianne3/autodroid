@@ -1,0 +1,18 @@
+<lint-module
+    format="1"
+    dir="D:\Codex\work\autodroid\app"
+    name=":app"
+    type="APP"
+    maven="AutoDroid:app:unspecified"
+    agpVersion="8.7.3"
+    buildFolder="build"
+    bootClassPath="D:\Codex\tools\android-sdk\platforms\android-36\android.jar;D:\Codex\tools\android-sdk\build-tools\34.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="17"
+    compileTarget="android-36">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>

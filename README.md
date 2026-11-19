@@ -14,12 +14,30 @@
 - **Link**：应用可作为链接处理器，按 host 匹配后派发事件。
 - **App**：通过无障碍服务监听应用前台窗口变化；已过滤 AutoDroid 自身，并对同一包名做 1 秒防抖。编辑时可从已安装应用自动补全，候选显示 `应用名 • 包名`，选中后只保存包名。
 - **Data SMS**：按规则中的目标端口动态注册/注销系统数据短信接收器；可选匹配发送方。
+- **Schedule**：`AlarmManager` 精确周期触发，最小间隔 1000ms。
+- **Screen On/Off**：屏幕点亮或熄灭。
+- **Battery Level**：电量高于/低于指定百分比（0-100）。
+- **Airplane Mode**：飞行模式开/关。
+- **Bluetooth**：蓝牙开/关。
+- **External Power**：电源连接/断开。
+- **Headphones**：耳机插入/拔出。
+- **Hotspot**：热点开/关。
+- **Silent Mode**：静音/振动模式。
+- **WiFi Connection**：WiFi 连接/断开。
+- **WiFi SSID**：按 SSID 匹配。
+- **Signal On/Off**：蜂窝信号开/关。
+- **Dock**：底座状态变化。
+- **VPN**：VPN 连接/断开。
+- **GPS**：GPS 开/关。
 
 ### 动作
 
 - **Notify**：创建系统通知，Android 13+ 会在缺少 `POST_NOTIFICATIONS` 权限时明确失败。
 - **Open URL**：通过系统 VIEW Intent 打开链接。
 - **Send Data SMS**：通过 `SmsManager.sendDataMessage` 发送端口短信，兼容 Android 12+ 与旧版本 API。
+- **Set Variable**：设置变量，供后续条件和动作引用。
+- **If / Else / End If**：条件分支，表达式支持 `{变量}` 引用和数值/字符串比较（`== != >= <= > <`）。
+- **Wait**：等待指定毫秒。
 
 ### 应用管理
 
@@ -32,6 +50,36 @@
 - 触发和动作字段保存前会做必填与格式校验。
 - 支持通过系统文件选择器导出/导入 JSON；导入按规则 ID 合并，同 ID 覆盖、不同 ID 追加。
 - Link / App / Data SMS 触发执行后会发布结果通知，显示匹配规则数、每个动作成功或失败状态和错误信息；点击通知可打开应用。
+
+## 变量系统
+
+规则条件表达式支持 `{变量名}` 引用，动作执行前会自动解析。变量来源：
+
+1. `Set Variable` 动作显式设置。
+2. 触发器派发时自动注入上下文变量。
+
+可用触发器变量：
+
+| 触发器 | 变量 |
+| --- | --- |
+| Link | `{link_host}` `{link_scheme}` `{link_path}` |
+| App | `{app_package}` |
+| Data SMS | `{sms_sender}` `{sms_port}` |
+| Screen On/Off | `{screen_on}` |
+| Battery Level | `{battery_level}` |
+| Airplane Mode | `{airplane_mode}` |
+| Bluetooth | `{bluetooth_on}` |
+| External Power | `{power_connected}` |
+| Headphones | `{headphones_connected}` |
+| Hotspot | `{hotspot_on}` |
+| Silent Mode | `{silent_mode}` |
+| WiFi | `{wifi_connected}` `{wifi_ssid}` |
+| Signal | `{signal_on}` |
+| Dock | `{dock_state}` |
+| VPN | `{vpn_connected}` |
+| GPS | `{gps_enabled}` |
+
+条件示例：`{battery_level} <= 20`、`{app_package} == com.example.app`、`{wifi_connected} == true`
 
 ## 构建
 

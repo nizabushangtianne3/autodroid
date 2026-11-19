@@ -38,6 +38,10 @@ val Action.summary: String
             is SendDataSmsAction -> "$sender:$destinationPort • ${payload.size} bytes"
             is NotifyAction -> "$title • $body"
             is SetVariableAction -> "$name = $value"
+            is IfConditionAction -> "if $expression"
+            is ElseConditionAction -> "else"
+            is EndIfAction -> "end if"
+            is WaitAction -> "wait ${durationMillis}ms"
         }
 
 @Serializable
@@ -211,6 +215,32 @@ data class SetVariableAction(
     override val id: String,
     val name: String,
     val value: String,
+) : Action
+
+@Serializable
+@SerialName("if_condition")
+data class IfConditionAction(
+    override val id: String,
+    val expression: String,
+) : Action
+
+@Serializable
+@SerialName("else_condition")
+data class ElseConditionAction(
+    override val id: String,
+) : Action
+
+@Serializable
+@SerialName("end_if")
+data class EndIfAction(
+    override val id: String,
+) : Action
+
+@Serializable
+@SerialName("wait")
+data class WaitAction(
+    override val id: String,
+    val durationMillis: Long,
 ) : Action
 
 @Serializable

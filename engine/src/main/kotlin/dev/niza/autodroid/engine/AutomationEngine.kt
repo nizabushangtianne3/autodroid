@@ -235,8 +235,40 @@ class AutomationEngine(
 
     fun dispatch(event: TriggerEvent): ExecutionReport {
         val matched = rules.filter { it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) }
-        val results = matched.flatMap { rule -> rule.actions.map(executor::execute) }
+        val results = matched.flatMap { rule -> executeActionList(rule.actions) }
         return ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
+    }
+
+    private fun executeActionList(actions: List<Action>): List<ActionResult> {
+        val results = mutableListOf<ActionResult>()
+        var insideIf = false
+        var inElseBranch = false
+        var conditionPassed = false
+
+        for (action in actions) {
+            when (action) {
+                is dev.niza.autodroid.engine.IfConditionAction -> {
+                    insideIf = true
+                    inElseBranch = false
+                    conditionPassed = evaluateExpression(action.expression)
+                }
+                is dev.niza.autodroid.engine.ElseConditionAction -> {
+                    inElseBranch = insideIf && !conditionPassed
+                }
+                is dev.niza.autodroid.engine.EndIfAction -> {
+                    insideIf = false
+                    inElseBranch = false
+                    conditionPassed = false
+                }
+                else -> {
+                    val shouldExecute = !insideIf || conditionPassed || inElseBranch
+                    if (shouldExecute) {
+                        results += executor.execute(action)
+                    }
+                }
+            }
+        }
+        return results
     }
 }
 

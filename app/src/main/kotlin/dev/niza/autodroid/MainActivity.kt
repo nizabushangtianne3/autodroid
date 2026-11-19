@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,6 +26,32 @@ import dev.niza.autodroid.ui.RuleEditor
 
 class MainActivity : AppCompatActivity() {
     private lateinit var listView: ListView
+    private val exportRules =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+            uri ?: return@registerForActivityResult
+            contentResolver.openOutputStream(uri)?.use { output ->
+                output.write(RuleStore().encode(Runtime.engine.rules()).toByteArray())
+            }
+            Toast.makeText(this, "Rules exported", Toast.LENGTH_SHORT).show()
+        }
+    private val importRules =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri ?: return@registerForActivityResult
+            val payload =
+                contentResolver.openInputStream(uri)?.use {
+                    it.bufferedReader().readText()
+                } ?: return@registerForActivityResult
+            val imported = RuleStore().decode(payload)
+            if (imported.isEmpty()) {
+                Toast.makeText(this, "Invalid rules file", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+            Runtime.loadRules(imported)
+            Runtime.saveRules(this)
+            DataSmsRegistrar.refresh(this)
+            render(listView)
+            Toast.makeText(this, "Rules imported", Toast.LENGTH_SHORT).show()
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,53 +157,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exportRules() {
-        val intent =
-            Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "application/json"
-                putExtra(Intent.EXTRA_TITLE, "autodroid-rules.json")
-            }
-        startActivityForResult(intent, REQUEST_EXPORT)
+        exportRules.launch("autodroid-rules.json")
     }
 
     private fun importRules(listView: ListView) {
-        val intent =
-            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "application/json"
-            }
-        startActivityForResult(intent, REQUEST_IMPORT)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-        val uri = data?.data ?: return
-        when (requestCode) {
-            REQUEST_EXPORT -> {
-                contentResolver.openOutputStream(uri)?.use { output ->
-                    output.write(RuleStore().encode(Runtime.engine.rules()).toByteArray())
-                }
-                Toast.makeText(this, "Rules exported", Toast.LENGTH_SHORT).show()
-            }
-            REQUEST_IMPORT -> {
-                val payload = contentResolver.openInputStream(uri)?.use { it.bufferedReader().readText() } ?: return
-                val imported = RuleStore().decode(payload)
-                if (imported.isEmpty()) {
-                    Toast.makeText(this, "Invalid rules file", Toast.LENGTH_SHORT).show()
-                    return
-                }
-                Runtime.loadRules(imported)
-                Runtime.saveRules(this)
-                DataSmsRegistrar.refresh(this)
-                render(listView)
-                Toast.makeText(this, "Rules imported", Toast.LENGTH_SHORT).show()
-            }
-        }
+        importRules.launch(arrayOf("application/json"))
     }
 
     private fun requestNotificationPermission() {
@@ -209,8 +194,6 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         private const val REQUEST_NOTIFICATIONS = 1001
         private const val REQUEST_SMS = 1002
-        private const val REQUEST_EXPORT = 2001
-        private const val REQUEST_IMPORT = 2002
     }
 
     fun render(listView: ListView) {

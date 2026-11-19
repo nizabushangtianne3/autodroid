@@ -92,16 +92,30 @@ class MainActivity : AppCompatActivity() {
                 },
             )
         }
+        val triggerHintFor = { typePosition: Int ->
+            when (typePosition) {
+                1 -> "App package name"
+                2 -> "Data SMS destination port"
+                else -> "Link host"
+            }
+        }
         val triggerValue = EditText(this).apply {
-            hint = "Link host"
+            hint = triggerHintFor(
+                when (rule.trigger) {
+                    is AppLaunchedTrigger -> 1
+                    is DataSmsReceivedTrigger -> 2
+                    else -> 0
+                },
+            )
             setText(rule.trigger.value)
         }
-        val triggerHint = when (rule.trigger) {
-            is AppLaunchedTrigger -> "App package name"
-            is DataSmsReceivedTrigger -> "Data SMS destination port"
-            else -> "Link host"
+        triggerType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                triggerValue.hint = triggerHintFor(position)
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
         }
-        triggerValue.hint = triggerHint
         val triggerSender = EditText(this).apply {
             hint = "SMS sender (optional)"
             setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
@@ -206,8 +220,9 @@ class MainActivity : AppCompatActivity() {
                     else -> "Link"
                 }
                 "${rule.name} • $kind • ${rule.trigger.value.orEmpty()}"
-                .let { if (!rule.enabled) "$it • disabled" else it }
+                    .let { if (!rule.enabled) "$it • disabled" else it }
             },
         )
+        listView.choiceMode = ListView.CHOICE_MODE_NONE
     }
 }

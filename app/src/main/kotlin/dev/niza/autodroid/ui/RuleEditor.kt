@@ -36,7 +36,7 @@ class RuleEditor(private val activity: MainActivity) {
                     ArrayAdapter(
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
-                        listOf("Link", "App", "Data SMS", "Schedule"),
+                        listOf("Link", "App", "Data SMS", "Schedule", "Screen On/Off", "Battery Level", "Airplane Mode", "Bluetooth"),
                     )
                 setSelection(
                     when (rule.trigger) {
@@ -55,6 +55,10 @@ class RuleEditor(private val activity: MainActivity) {
                             is AppLaunchedTrigger -> RuleEditorLogic.TYPE_APP
                             is DataSmsReceivedTrigger -> RuleEditorLogic.TYPE_DATA_SMS
                             is dev.niza.autodroid.engine.ScheduleTrigger -> RuleEditorLogic.TYPE_SCHEDULE
+                            is dev.niza.autodroid.engine.ScreenOnOffTrigger -> RuleEditorLogic.TYPE_SCREEN_ON_OFF
+                            is dev.niza.autodroid.engine.BatteryLevelTrigger -> RuleEditorLogic.TYPE_BATTERY_LEVEL
+                            is dev.niza.autodroid.engine.AirplaneModeTrigger -> RuleEditorLogic.TYPE_AIRPLANE_MODE
+                            is dev.niza.autodroid.engine.BluetoothTrigger -> RuleEditorLogic.TYPE_BLUETOOTH
                             else -> RuleEditorLogic.TYPE_LINK
                         },
                     )
@@ -219,6 +223,14 @@ class RuleEditor(private val activity: MainActivity) {
                                 triggerId,
                                 intervalMillis = value.toLongOrNull() ?: 0,
                             )
+                        RuleEditorLogic.TYPE_SCREEN_ON_OFF ->
+                            dev.niza.autodroid.engine.ScreenOnOffTrigger(triggerId, screenOn = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_BATTERY_LEVEL ->
+                            dev.niza.autodroid.engine.BatteryLevelTrigger(triggerId, level = value.toIntOrNull() ?: 0)
+                        RuleEditorLogic.TYPE_AIRPLANE_MODE ->
+                            dev.niza.autodroid.engine.AirplaneModeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_BLUETOOTH ->
+                            dev.niza.autodroid.engine.BluetoothTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }
                 val updated =

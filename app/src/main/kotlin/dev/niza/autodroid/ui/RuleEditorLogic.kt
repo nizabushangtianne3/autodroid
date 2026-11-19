@@ -6,6 +6,10 @@ object RuleEditorLogic {
     const val TYPE_APP = 1
     const val TYPE_DATA_SMS = 2
     const val TYPE_SCHEDULE = 3
+    const val TYPE_SCREEN_ON_OFF = 4
+    const val TYPE_BATTERY_LEVEL = 5
+    const val TYPE_AIRPLANE_MODE = 6
+    const val TYPE_BLUETOOTH = 7
 
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
@@ -16,6 +20,10 @@ object RuleEditorLogic {
             TYPE_APP -> "App package name"
             TYPE_DATA_SMS -> "Data SMS destination port"
             TYPE_SCHEDULE -> "Interval milliseconds"
+            TYPE_SCREEN_ON_OFF -> "Screen on (true/false)"
+            TYPE_BATTERY_LEVEL -> "Battery level percentage"
+            TYPE_AIRPLANE_MODE -> "Airplane enabled (true/false)"
+            TYPE_BLUETOOTH -> "Bluetooth enabled (true/false)"
             else -> "Link host"
         }
 
@@ -52,6 +60,13 @@ object RuleEditorLogic {
             TYPE_SCHEDULE -> {
                 val interval = value.toLongOrNull()
                 if (interval == null || interval < 1000) "Interval must be at least 1000ms" else null
+            }
+            TYPE_BATTERY_LEVEL -> {
+                val level = value.toIntOrNull()
+                if (level == null || level !in 0..100) "Battery level must be 0-100" else null
+            }
+            TYPE_SCREEN_ON_OFF, TYPE_AIRPLANE_MODE, TYPE_BLUETOOTH -> {
+                if (value.toBooleanStrictOrNull() == null) "Value must be true or false" else null
             }
             else -> null
         }
@@ -98,6 +113,10 @@ object RuleEditorLogic {
                 TYPE_APP -> trigger is dev.niza.autodroid.engine.AppLaunchedTrigger
                 TYPE_DATA_SMS -> trigger is dev.niza.autodroid.engine.DataSmsReceivedTrigger
                 TYPE_SCHEDULE -> trigger is dev.niza.autodroid.engine.ScheduleTrigger
+                TYPE_SCREEN_ON_OFF -> trigger is dev.niza.autodroid.engine.ScreenOnOffTrigger
+                TYPE_BATTERY_LEVEL -> trigger is dev.niza.autodroid.engine.BatteryLevelTrigger
+                TYPE_AIRPLANE_MODE -> trigger is dev.niza.autodroid.engine.AirplaneModeTrigger
+                TYPE_BLUETOOTH -> trigger is dev.niza.autodroid.engine.BluetoothTrigger
                 else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
             }
 
@@ -124,6 +143,10 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.AppLaunchedTrigger -> "App"
             is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "SMS"
             is dev.niza.autodroid.engine.ScheduleTrigger -> "Schedule"
+            is dev.niza.autodroid.engine.ScreenOnOffTrigger -> "Screen"
+            is dev.niza.autodroid.engine.BatteryLevelTrigger -> "Battery"
+            is dev.niza.autodroid.engine.AirplaneModeTrigger -> "Airplane"
+            is dev.niza.autodroid.engine.BluetoothTrigger -> "Bluetooth"
             else -> "Link"
         }
 }

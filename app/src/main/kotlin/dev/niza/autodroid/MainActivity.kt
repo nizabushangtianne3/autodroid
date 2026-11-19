@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         Runtime.initialize(this)
         Runtime.loadRules(this)
         DataSmsRegistrar.refresh(this)
+        DeviceStateReceiver.refresh(this)
         requestNotificationPermission()
         requestSmsPermission()
         listView = ListView(this)

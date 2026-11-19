@@ -41,6 +41,43 @@ class ScheduleFiredEvent : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ScheduleTrigger
 }
 
+data class ScreenOnOffEvent(
+    val screenOn: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.ScreenOnOffTrigger && trigger.screenOn == screenOn
+    }
+}
+
+data class BatteryLevelEvent(
+    val level: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.BatteryLevelTrigger) return false
+        return if (trigger.direction == "above") {
+            level >= trigger.level
+        } else {
+            level <= trigger.level
+        }
+    }
+}
+
+data class AirplaneModeEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.AirplaneModeTrigger && trigger.enabled == enabled
+    }
+}
+
+data class BluetoothEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.BluetoothTrigger && trigger.enabled == enabled
+    }
+}
+
 class AutomationEngine(
     private val executor: ActionExecutor,
 ) {

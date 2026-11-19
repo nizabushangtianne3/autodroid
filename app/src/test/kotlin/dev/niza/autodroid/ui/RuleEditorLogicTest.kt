@@ -63,4 +63,14 @@ class RuleEditorLogicTest {
         assertEquals("01F1", RuleEditorLogic.parseHex("0x01F1").joinToString("") { "%02X".format(it) })
         assertEquals(0, RuleEditorLogic.parseHex("0").size)
     }
+
+    @Test
+    fun `trigger filter covers schedule and device state`() {
+        val link = dev.niza.autodroid.engine.LinkOpenedTrigger("t1", host = "a.com")
+        val schedule = dev.niza.autodroid.engine.ScheduleTrigger("t2", intervalMillis = 5000)
+        assertEquals(true, RuleEditorLogic.ruleMatchesTriggerFilter(schedule, 0))
+        assertEquals(true, RuleEditorLogic.ruleMatchesTriggerFilter(schedule, 3))
+        assertEquals(false, RuleEditorLogic.ruleMatchesTriggerFilter(schedule, 1))
+        assertEquals(false, RuleEditorLogic.ruleMatchesTriggerFilter(link, 3))
+    }
 }

@@ -15,6 +15,10 @@ val Trigger.value: String?
             is DataSmsReceivedTrigger -> destinationPort.toString()
             is AppLaunchedTrigger -> packageName
             is ScheduleTrigger -> "every ${intervalMillis}ms"
+            is ScreenOnOffTrigger -> if (screenOn) "screen on" else "screen off"
+            is BatteryLevelTrigger -> "battery $level%"
+            is AirplaneModeTrigger -> if (enabled) "airplane on" else "airplane off"
+            is BluetoothTrigger -> if (enabled) "bluetooth on" else "bluetooth off"
         }
 
 val Action.summary: String
@@ -55,6 +59,35 @@ data class ScheduleTrigger(
     override val id: String,
     val intervalMillis: Long,
     val startAtElapsedRealtime: Long = 0,
+) : Trigger
+
+@Serializable
+@SerialName("screen_on_off")
+data class ScreenOnOffTrigger(
+    override val id: String,
+    val screenOn: Boolean,
+) : Trigger
+
+@Serializable
+@SerialName("battery_level")
+data class BatteryLevelTrigger(
+    override val id: String,
+    val level: Int,
+    val direction: String = "below",
+) : Trigger
+
+@Serializable
+@SerialName("airplane_mode")
+data class AirplaneModeTrigger(
+    override val id: String,
+    val enabled: Boolean,
+) : Trigger
+
+@Serializable
+@SerialName("bluetooth")
+data class BluetoothTrigger(
+    override val id: String,
+    val enabled: Boolean,
 ) : Trigger
 
 @Serializable

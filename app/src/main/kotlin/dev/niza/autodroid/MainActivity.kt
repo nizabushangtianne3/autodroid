@@ -18,6 +18,8 @@ import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.AppLaunchedTrigger
 import dev.niza.autodroid.engine.DataSmsReceivedTrigger
 import dev.niza.autodroid.engine.NotifyAction
+import dev.niza.autodroid.engine.OpenUrlAction
+import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.engine.Rule
 
@@ -122,13 +124,40 @@ class MainActivity : AppCompatActivity() {
             hint = "SMS sender (optional)"
             setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
         }
-        val title = EditText(this).apply {
-            hint = "Notification title"
-            setText((rule.actions.firstOrNull() as? NotifyAction)?.title.orEmpty())
+        val actionType = Spinner(this).apply {
+            adapter = ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                listOf("Notify", "Open URL", "Send Data SMS"),
+            )
+            setSelection(
+                when (rule.actions.firstOrNull()) {
+                    is OpenUrlAction -> 1
+                    is SendDataSmsAction -> 2
+                    else -> 0
+                },
+            )
         }
-        val body = EditText(this).apply {
+        val actionValue = EditText(this).apply {
+            hint = "Notification title"
+            setText(
+                when (val action = rule.actions.firstOrNull()) {
+                    is NotifyAction -> action.title
+                    is OpenUrlAction -> action.url
+                    is SendDataSmsAction -> action.sender
+                    else -> ""
+                },
+            )
+        }
+        val actionExtra = EditText(this).apply {
             hint = "Notification body"
-            setText((rule.actions.firstOrNull() as? NotifyAction)?.body.orEmpty())
+            setText(
+                when (val action = rule.actions.firstOrNull()) {
+                    is NotifyAction -> action.body
+                    is SendDataSmsAction -> android.util.Base64.encodeToString(action.payload, android.util.Base64.NO_WRAP)
+                    else -> ""
+                },
+            )
         }
         val enabled = CheckBox(this).apply {
             text = "Enabled"
@@ -141,8 +170,9 @@ class MainActivity : AppCompatActivity() {
             addView(triggerType)
             addView(triggerValue)
             addView(triggerSender)
-            addView(title)
-            addView(body)
+            addView(actionType)
+            addView(actionValue)
+            addView(actionExtra)
             addView(enabled)
         }
         AlertDialog.Builder(this)
@@ -161,13 +191,7 @@ class MainActivity : AppCompatActivity() {
                 val updated = rule.copy(
                     name = name.text.toString(),
                     trigger = trigger,
-                    actions = listOf(
-                        NotifyAction(
-                            id = "action-$sequence",
-                            title = title.text.toString(),
-                            body = body.text.toString(),
-                        ),
-                    ),
+                    actions = listOf(buildAction(sequence, actionType.selectedItemPosition, actionValue.text.toString(), actionExtra.text.toString())),
                     enabled = enabled.isChecked,
                 )
                 Runtime.engine.replace(updated)
@@ -177,6 +201,20 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun buildAction(sequence: String, typePosition: Int, value: String, extra: String): dev.niza.autodroid.engine.Action {
+        val actionId = "action-$sequence"
+        return when (typePosition) {
+            1 -> OpenUrlAction(actionId, value)
+            2 -> SendDataSmsAction(
+                actionId,
+                destinationPort = extra.toIntOrNull() ?: 0,
+                sender = value,
+                payload = extra.toByteArray(),
+            )
+            else -> NotifyAction(actionId, title = value, body = extra)
+        }
     }
 
     private fun requestNotificationPermission() {

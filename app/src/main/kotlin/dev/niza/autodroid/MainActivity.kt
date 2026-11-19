@@ -152,6 +152,11 @@ class MainActivity : AppCompatActivity() {
                 else -> "Notification body"
             }
         }
+        val actionPort = EditText(this).apply {
+            hint = "Data SMS destination port"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText((rule.actions.firstOrNull() as? SendDataSmsAction)?.destinationPort?.toString().orEmpty())
+        }
         val actionValue = EditText(this).apply {
             hint = actionHintFor(
                 when (rule.actions.firstOrNull()) {
@@ -206,6 +211,7 @@ class MainActivity : AppCompatActivity() {
             addView(triggerSender)
             addView(actionType)
             addView(actionValue)
+            addView(actionPort)
             addView(actionExtra)
             addView(enabled)
         }
@@ -215,6 +221,11 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Save") { _, _ ->
                 val sequence = rule.id.substringAfterLast('-')
                 val value = triggerValue.text.toString()
+                val packageNamePattern = Regex("^[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$")
+                if (triggerType.selectedItemPosition == 1 && !packageNamePattern.matches(value)) {
+                    android.widget.Toast.makeText(this, "Invalid Android package name", android.widget.Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 val sender = triggerSender.text.toString().trim().ifBlank { null }
                 val triggerId = rule.trigger.id
                 val trigger = when (triggerType.selectedItemPosition) {
@@ -225,7 +236,15 @@ class MainActivity : AppCompatActivity() {
                 val updated = rule.copy(
                     name = name.text.toString(),
                     trigger = trigger,
-                    actions = listOf(buildAction(sequence, actionType.selectedItemPosition, actionValue.text.toString(), actionExtra.text.toString())),
+                    actions = listOf(
+                        buildAction(
+                            sequence,
+                            actionType.selectedItemPosition,
+                            actionValue.text.toString(),
+                            actionExtra.text.toString(),
+                            actionPort.text.toString(),
+                        ),
+                    ),
                     enabled = enabled.isChecked,
                 )
                 Runtime.engine.replace(updated)
@@ -237,13 +256,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun buildAction(sequence: String, typePosition: Int, value: String, extra: String): dev.niza.autodroid.engine.Action {
+    private fun buildAction(sequence: String, typePosition: Int, value: String, extra: String, port: String): dev.niza.autodroid.engine.Action {
         val actionId = "action-$sequence"
         return when (typePosition) {
             1 -> OpenUrlAction(actionId, value)
             2 -> SendDataSmsAction(
                 actionId,
-                destinationPort = 0,
+                destinationPort = port.toIntOrNull() ?: 0,
                 sender = value,
                 payload = parseHex(extra),
             )

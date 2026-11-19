@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.LinearLayout
 import android.widget.ArrayAdapter
 import android.widget.ListView
@@ -13,7 +14,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import dev.niza.autodroid.engine.LinkOpenedTrigger
+import dev.niza.autodroid.engine.AppLaunchedTrigger
+import dev.niza.autodroid.engine.DataSmsReceivedTrigger
 import dev.niza.autodroid.engine.NotifyAction
+import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.engine.Rule
 
 class MainActivity : AppCompatActivity() {
@@ -61,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         val rule = Rule(
             id = "sample-$sequence",
             name = "Sample rule $sequence",
-            trigger = LinkOpenedTrigger("trigger-$sequence", host = "example.com"),
+            trigger = LinkOpenedTrigger("trigger-$sequence", host = ""),
             actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Link matched")),
         )
         editRule(rule, listView)
@@ -72,9 +76,23 @@ class MainActivity : AppCompatActivity() {
             hint = "Rule name"
             setText(rule.name)
         }
-        val host = EditText(this).apply {
+        val triggerType = Spinner(this).apply {
+            adapter = ArrayAdapter(
+                this@MainActivity,
+                android.R.layout.simple_spinner_dropdown_item,
+                listOf("Link", "App", "Data SMS"),
+            )
+            setSelection(
+                when (rule.trigger) {
+                    is AppLaunchedTrigger -> 1
+                    is DataSmsReceivedTrigger -> 2
+                    else -> 0
+                },
+            )
+        }
+        val triggerValue = EditText(this).apply {
             hint = "Link host"
-            setText((rule.trigger as? LinkOpenedTrigger)?.host.orEmpty())
+            setText(rule.trigger.value)
         }
         val title = EditText(this).apply {
             hint = "Notification title"
@@ -88,7 +106,8 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             setPadding(48, 24, 48, 0)
             addView(name)
-            addView(host)
+            addView(triggerType)
+            addView(triggerValue)
             addView(title)
             addView(body)
         }
@@ -97,10 +116,16 @@ class MainActivity : AppCompatActivity() {
             .setView(form)
             .setPositiveButton("Save") { _, _ ->
                 val sequence = rule.id.substringAfterLast('-')
+                val value = triggerValue.text.toString()
+                val triggerId = rule.trigger.id
+                val trigger = when (triggerType.selectedItemPosition) {
+                    1 -> AppLaunchedTrigger(triggerId, value)
+                    2 -> DataSmsReceivedTrigger(triggerId, destinationPort = value.toIntOrNull() ?: 0, sender = null)
+                    else -> LinkOpenedTrigger(triggerId, host = value)
+                }
                 val updated = rule.copy(
                     name = name.text.toString(),
-                    trigger = (rule.trigger as? LinkOpenedTrigger)?.copy(host = host.text.toString())
-                        ?: LinkOpenedTrigger(rule.trigger.id, host = host.text.toString()),
+                    trigger = trigger,
                     actions = listOf(
                         NotifyAction(
                             id = "action-$sequence",
@@ -140,7 +165,14 @@ class MainActivity : AppCompatActivity() {
         listView.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_list_item_1,
-            rules.map { "${it.name} • ${it.trigger::class.simpleName}" },
+            rules.map { rule ->
+                val kind = when (rule.trigger) {
+                    is AppLaunchedTrigger -> "App"
+                    is DataSmsReceivedTrigger -> "SMS"
+                    else -> "Link"
+                }
+                "${rule.name} • $kind • ${rule.trigger.value.orEmpty()}"
+            },
         )
     }
 }

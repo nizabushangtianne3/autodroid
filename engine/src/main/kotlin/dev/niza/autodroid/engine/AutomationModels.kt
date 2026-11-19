@@ -8,6 +8,13 @@ sealed interface Trigger {
     val id: String
 }
 
+val Trigger.value: String?
+    get() = when (this) {
+        is LinkOpenedTrigger -> host
+        is DataSmsReceivedTrigger -> destinationPort.toString()
+        is AppLaunchedTrigger -> packageName
+    }
+
 @Serializable
 @SerialName("link")
 data class LinkOpenedTrigger(

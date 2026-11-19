@@ -65,6 +65,15 @@ object Runtime {
                 .setContentTitle(title)
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                .setContentIntent(
+                    android.app.PendingIntent.getActivity(
+                        appContext,
+                        0,
+                        Intent(appContext, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE,
+                    ),
+                )
                 .build(),
         )
     }

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.niza.autodroid.engine.RuleStoreTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-19T15:08:16.411Z" hostname="DESKTOP-TC6I2C0" time="0.034">
-  <properties/>
-  <testcase name="decode unknown trigger type returns empty list()" classname="dev.niza.autodroid.engine.RuleStoreTest" time="0.018"/>
-  <testcase name="decode invalid payload returns empty list()" classname="dev.niza.autodroid.engine.RuleStoreTest" time="0.0"/>
-  <testcase name="encode and decode preserves rules()" classname="dev.niza.autodroid.engine.RuleStoreTest" time="0.014"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

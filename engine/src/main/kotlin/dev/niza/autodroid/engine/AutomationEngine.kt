@@ -232,6 +232,11 @@ class AutomationEngine(
 ) {
     private val rules = mutableListOf<Rule>()
     private val variables = mutableMapOf<String, String>()
+    private val executionLog = mutableListOf<ExecutionLogEntry>()
+
+    private companion object {
+        const val MAX_LOG_ENTRIES = 100
+    }
 
     fun register(rule: Rule) {
         rules += rule
@@ -259,6 +264,8 @@ class AutomationEngine(
 
     fun variables(): Map<String, String> = variables.toMap()
 
+    fun executionLog(): List<ExecutionLogEntry> = executionLog.toList()
+
     fun conditionsSatisfied(rule: Rule): Boolean =
         rule.conditions.all { condition ->
             evaluateExpression(condition.expression)
@@ -266,6 +273,18 @@ class AutomationEngine(
 
     fun evaluateExpression(expression: String): Boolean {
         val resolved = variables.entries.fold(expression) { text, (name, value) -> text.replace("{$name}", value) }
+        val orParts = resolved.split("||")
+        if (orParts.size > 1) {
+            return orParts.any { evaluateSingleExpression(it.trim()) }
+        }
+        val andParts = resolved.split("&&")
+        if (andParts.size > 1) {
+            return andParts.all { evaluateSingleExpression(it.trim()) }
+        }
+        return evaluateSingleExpression(resolved)
+    }
+
+    private fun evaluateSingleExpression(resolved: String): Boolean {
         val comparisons = listOf("==", "!=", ">=", "<=", ">", "<")
         for (operator in comparisons) {
             val index = resolved.indexOf(operator)
@@ -307,7 +326,12 @@ class AutomationEngine(
         event.injectTriggerVariables(this)
         val matched = rules.filter { it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) }
         val results = matched.flatMap { rule -> executeActionList(rule.actions) }
-        return ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
+        val report = ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
+        executionLog += ExecutionLogEntry(timestamp = System.currentTimeMillis(), report = report)
+        if (executionLog.size > MAX_LOG_ENTRIES) {
+            executionLog.removeAt(0)
+        }
+        return report
     }
 
     private fun executeActionList(actions: List<Action>): List<ActionResult> {
@@ -390,4 +414,9 @@ data class ActionResult(
     val actionId: String,
     val success: Boolean,
     val message: String? = null,
+)
+
+data class ExecutionLogEntry(
+    val timestamp: Long,
+    val report: ExecutionReport,
 )

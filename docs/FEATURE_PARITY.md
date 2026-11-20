@@ -66,6 +66,15 @@ Implemented model/runtime API: BatteryLevel ✅, BatterySaver ✅, Bluetooth ✅
 
 Editor persistence and live Android `DeviceState` sampling remain planned for the next batch.
 
+## Editor Parity Progress
+
+- v0.1.9 aligned the shell around MacroDroid's bottom navigation and macro list card structure.
+- Next batch adds the full-screen editor with red Trigger / blue Actions / green Constraints sections.
+- Constraint editing now supports all 16 modeled constraints: BatteryLevel, BatterySaver, Bluetooth,
+  CellConnection, Day/Time, DeviceLocked, ExternalPower, GPSEnabled, Headphones, NetworkType,
+  ScreenOnOff, SilentMode, TriggerEnabled, Variable, Wifi, AirplaneMode.
+- Live Android `DeviceState` sampling and multiple action editing remain next.
+
 ## Naming and Branding
 
 AutoDroid uses its own class names, package namespace (`dev.niza.autodroid`), UI strings, and icons. Behavior parity does not imply code or asset parity. Every implementation is written from public Android API documentation.

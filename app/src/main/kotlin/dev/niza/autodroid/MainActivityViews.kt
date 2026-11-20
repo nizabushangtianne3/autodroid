@@ -16,7 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.Rule
-import dev.niza.autodroid.ui.RuleEditor
+import dev.niza.autodroid.ui.RuleEditorActivity
 
 fun MainActivity.setupViews() {
     val macroList = findViewById<ListView>(R.id.list_rules)
@@ -34,7 +34,7 @@ fun MainActivity.setupViews() {
     }
 
     macroList.setOnItemClickListener { _, _, position, _ ->
-        RuleEditor(this).editRule(visibleRules()[position], macroList)
+        openEditor(visibleRules()[position].id)
     }
     macroList.setOnItemLongClickListener { _, _, position, _ ->
         Runtime.engine.remove(visibleRules()[position].id)
@@ -43,7 +43,7 @@ fun MainActivity.setupViews() {
         true
     }
     homeMacroList.setOnItemClickListener { _, _, position, _ ->
-        RuleEditor(this).editRule(Runtime.engine.rules()[position], macroList)
+        openEditor(Runtime.engine.rules()[position].id)
     }
     homeActionList.adapter = HomeActionAdapter()
     homeActionList.setOnItemClickListener { _, _, position, _ ->
@@ -131,7 +131,13 @@ private fun MainActivity.createRule(listView: ListView) {
             trigger = LinkOpenedTrigger("trigger-$sequence", host = ""),
             actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Triggered")),
         )
-    RuleEditor(this).editRule(rule, listView)
+    Runtime.engine.replace(rule)
+    Runtime.saveRules(this)
+    openEditor(rule.id)
+}
+
+internal fun MainActivity.openEditor(ruleId: String) {
+    startActivity(android.content.Intent(this, RuleEditorActivity::class.java).putExtra(RuleEditorActivity.EXTRA_RULE_ID, ruleId))
 }
 
 fun MainActivity.render(listView: ListView) {

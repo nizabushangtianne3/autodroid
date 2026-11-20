@@ -25,6 +25,11 @@
         </activity>
 
         <activity
+            android:name=".ui.RuleEditorActivity"
+            android:exported="false"
+            android:label="@string/action_edit" />
+
+        <activity
             android:name=".LinkRouterActivity"
             android:exported="true"
             android:excludeFromRecents="true"

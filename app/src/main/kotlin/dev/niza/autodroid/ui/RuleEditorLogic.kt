@@ -64,6 +64,131 @@ object RuleEditorLogic {
             else -> "链接主机，例如 example.com"
         }
 
+    fun triggerLabels(): List<String> =
+        listOf(
+            "Open Link", "Application Launched", "Data SMS", "Timer",
+            "Screen On / Off", "Battery Level", "Airplane Mode", "Bluetooth", "External Power",
+            "Headphones", "Hotspot", "Silent Mode", "WiFi Connection", "WiFi SSID",
+            "Signal On / Off", "Dock", "VPN", "GPS Enabled", "Device Unlocked",
+            "Clipboard Change", "Dark Theme", "Media Button", "Notification",
+        )
+
+    fun typePosition(trigger: dev.niza.autodroid.engine.Trigger): Int =
+        when (trigger) {
+            is dev.niza.autodroid.engine.AppLaunchedTrigger -> TYPE_APP
+            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> TYPE_DATA_SMS
+            is dev.niza.autodroid.engine.ScheduleTrigger -> TYPE_SCHEDULE
+            is dev.niza.autodroid.engine.ScreenOnOffTrigger -> TYPE_SCREEN_ON_OFF
+            is dev.niza.autodroid.engine.BatteryLevelTrigger -> TYPE_BATTERY_LEVEL
+            is dev.niza.autodroid.engine.AirplaneModeTrigger -> TYPE_AIRPLANE_MODE
+            is dev.niza.autodroid.engine.BluetoothTrigger -> TYPE_BLUETOOTH
+            is dev.niza.autodroid.engine.ExternalPowerTrigger -> TYPE_EXTERNAL_POWER
+            is dev.niza.autodroid.engine.HeadphonesTrigger -> TYPE_HEADPHONES
+            is dev.niza.autodroid.engine.HotspotTrigger -> TYPE_HOTSPOT
+            is dev.niza.autodroid.engine.SilentModeTrigger -> TYPE_SILENT_MODE
+            is dev.niza.autodroid.engine.WifiConnectionTrigger -> TYPE_WIFI_CONNECTION
+            is dev.niza.autodroid.engine.WifiSSIDTrigger -> TYPE_WIFI_SSID
+            is dev.niza.autodroid.engine.SignalOnOffTrigger -> TYPE_SIGNAL_ON_OFF
+            is dev.niza.autodroid.engine.DockTrigger -> TYPE_DOCK
+            is dev.niza.autodroid.engine.VpnTrigger -> TYPE_VPN
+            is dev.niza.autodroid.engine.GPSEnabledTrigger -> TYPE_GPS_ENABLED
+            is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> TYPE_DEVICE_UNLOCKED
+            is dev.niza.autodroid.engine.ClipboardChangeTrigger -> TYPE_CLIPBOARD_CHANGE
+            is dev.niza.autodroid.engine.DarkThemeTrigger -> TYPE_DARK_THEME
+            is dev.niza.autodroid.engine.MediaButtonTrigger -> TYPE_MEDIA_BUTTON
+            is dev.niza.autodroid.engine.NotificationTrigger -> TYPE_NOTIFICATION
+            else -> TYPE_LINK
+        }
+
+    fun actionLabels(): List<String> =
+        listOf(
+            "Display Notification", "Open URL", "Send Data SMS", "Set Variable",
+            "If", "Else", "End If", "Wait", "Repeat", "End Repeat",
+        )
+
+    fun actionTypePosition(action: dev.niza.autodroid.engine.Action?): Int =
+        when (action) {
+            is dev.niza.autodroid.engine.OpenUrlAction -> ACTION_OPEN_URL
+            is dev.niza.autodroid.engine.SendDataSmsAction -> ACTION_SEND_DATA_SMS
+            is dev.niza.autodroid.engine.SetVariableAction -> ACTION_SET_VARIABLE
+            is dev.niza.autodroid.engine.IfConditionAction -> ACTION_IF_CONDITION
+            is dev.niza.autodroid.engine.ElseConditionAction -> ACTION_ELSE_CONDITION
+            is dev.niza.autodroid.engine.EndIfAction -> ACTION_END_IF
+            is dev.niza.autodroid.engine.WaitAction -> ACTION_WAIT
+            is dev.niza.autodroid.engine.RepeatStartAction -> ACTION_REPEAT_START
+            is dev.niza.autodroid.engine.RepeatEndAction -> ACTION_REPEAT_END
+            else -> ACTION_NOTIFY
+        }
+
+    fun actionValue(action: dev.niza.autodroid.engine.Action?): String =
+        when (action) {
+            is dev.niza.autodroid.engine.NotifyAction -> action.title
+            is dev.niza.autodroid.engine.OpenUrlAction -> action.url
+            is dev.niza.autodroid.engine.SendDataSmsAction -> action.sender
+            is dev.niza.autodroid.engine.SetVariableAction -> action.name
+            is dev.niza.autodroid.engine.IfConditionAction -> action.expression
+            is dev.niza.autodroid.engine.WaitAction -> action.durationMillis.toString()
+            is dev.niza.autodroid.engine.RepeatStartAction -> action.count.toString()
+            else -> ""
+        }
+
+    fun actionExtra(action: dev.niza.autodroid.engine.Action?): String =
+        when (action) {
+            is dev.niza.autodroid.engine.NotifyAction -> action.body
+            is dev.niza.autodroid.engine.SendDataSmsAction -> action.payload.joinToString("") { "%02X".format(it) }
+            is dev.niza.autodroid.engine.SetVariableAction -> action.value
+            else -> ""
+        }
+
+    fun buildTrigger(
+        triggerId: String,
+        typePosition: Int,
+        value: String,
+        sender: String?,
+    ): dev.niza.autodroid.engine.Trigger =
+        when (typePosition) {
+            TYPE_APP -> dev.niza.autodroid.engine.AppLaunchedTrigger(triggerId, value)
+            TYPE_DATA_SMS ->
+                dev.niza.autodroid.engine.DataSmsReceivedTrigger(
+                    triggerId,
+                    destinationPort = value.toIntOrNull() ?: 0,
+                    sender = sender,
+                )
+            TYPE_SCHEDULE -> dev.niza.autodroid.engine.ScheduleTrigger(triggerId, intervalMillis = value.toLongOrNull() ?: 0)
+            TYPE_SCREEN_ON_OFF ->
+                dev.niza.autodroid.engine.ScreenOnOffTrigger(triggerId, screenOn = value.toBooleanStrictOrNull() ?: true)
+            TYPE_BATTERY_LEVEL -> dev.niza.autodroid.engine.BatteryLevelTrigger(triggerId, level = value.toIntOrNull() ?: 0)
+            TYPE_AIRPLANE_MODE ->
+                dev.niza.autodroid.engine.AirplaneModeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_BLUETOOTH ->
+                dev.niza.autodroid.engine.BluetoothTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_EXTERNAL_POWER ->
+                dev.niza.autodroid.engine.ExternalPowerTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+            TYPE_HEADPHONES ->
+                dev.niza.autodroid.engine.HeadphonesTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+            TYPE_HOTSPOT ->
+                dev.niza.autodroid.engine.HotspotTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_SILENT_MODE ->
+                dev.niza.autodroid.engine.SilentModeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_WIFI_CONNECTION ->
+                dev.niza.autodroid.engine.WifiConnectionTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+            TYPE_WIFI_SSID -> dev.niza.autodroid.engine.WifiSSIDTrigger(triggerId, ssid = value)
+            TYPE_SIGNAL_ON_OFF ->
+                dev.niza.autodroid.engine.SignalOnOffTrigger(triggerId, signalOn = value.toBooleanStrictOrNull() ?: true)
+            TYPE_DOCK -> dev.niza.autodroid.engine.DockTrigger(triggerId, state = value)
+            TYPE_VPN -> dev.niza.autodroid.engine.VpnTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
+            TYPE_GPS_ENABLED ->
+                dev.niza.autodroid.engine.GPSEnabledTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_DEVICE_UNLOCKED -> dev.niza.autodroid.engine.DeviceUnlockedTrigger(triggerId)
+            TYPE_CLIPBOARD_CHANGE -> dev.niza.autodroid.engine.ClipboardChangeTrigger(triggerId)
+            TYPE_DARK_THEME ->
+                dev.niza.autodroid.engine.DarkThemeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+            TYPE_MEDIA_BUTTON -> dev.niza.autodroid.engine.MediaButtonTrigger(triggerId, button = value)
+            TYPE_NOTIFICATION ->
+                dev.niza.autodroid.engine.NotificationTrigger(triggerId, packageName = value.ifBlank { null })
+            else -> dev.niza.autodroid.engine.LinkOpenedTrigger(triggerId, host = value)
+        }
+
     fun actionHint(typePosition: Int): String =
         when (typePosition) {
             ACTION_OPEN_URL -> "网址"

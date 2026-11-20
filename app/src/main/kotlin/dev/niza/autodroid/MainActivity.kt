@@ -13,7 +13,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.RuleStore
-import dev.niza.autodroid.ui.RuleEditor
 
 class MainActivity : AppCompatActivity() {
     internal lateinit var listView: ListView
@@ -57,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setupViews()
         ScheduleRegistrar.refresh(this)
-        handleNotificationTarget(intent, listView)
+        handleNotificationTarget(intent)
     }
 
     private fun mergeImportedRules(imported: List<Rule>) {
@@ -100,21 +99,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (this::listView.isInitialized) handleNotificationTarget(intent, listView)
+        val ruleId = intent.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
+        intent.removeExtra(Runtime.EXTRA_RULE_ID)
+        if (this::listView.isInitialized) openEditor(ruleId)
     }
 
-    private fun handleNotificationTarget(
-        intent: Intent?,
-        listView: ListView,
-    ) {
+    private fun handleNotificationTarget(intent: Intent?) {
         val ruleId = intent?.getStringExtra(Runtime.EXTRA_RULE_ID) ?: return
         intent.removeExtra(Runtime.EXTRA_RULE_ID)
-        val rule = Runtime.engine.rules().firstOrNull { it.id == ruleId } ?: return
-        val position = Runtime.engine.rules().indexOfFirst { it.id == ruleId }
-        if (position >= 0) {
-            listView.smoothScrollToPosition(position)
-            listView.setItemChecked(position, true)
-        }
-        RuleEditor(this).editRule(rule, listView)
+        openEditor(ruleId)
     }
 }

@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
             contentResolver.openOutputStream(uri)?.use { output ->
                 output.write(RuleStore().encode(Runtime.engine.rules()).toByteArray())
             }
-            Toast.makeText(this, "Rules exported", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "宏已导出", Toast.LENGTH_SHORT).show()
         }
     internal val importRules =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -36,14 +36,14 @@ class MainActivity : AppCompatActivity() {
                 } ?: return@registerForActivityResult
             val imported = RuleStore().decode(payload)
             if (imported.isEmpty()) {
-                Toast.makeText(this, "Invalid rules file", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "宏文件无效", Toast.LENGTH_SHORT).show()
                 return@registerForActivityResult
             }
             mergeImportedRules(imported)
             Runtime.saveRules(this)
             DataSmsRegistrar.refresh(this)
             render(listView)
-            Toast.makeText(this, "Rules imported", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "宏已导入", Toast.LENGTH_SHORT).show()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {

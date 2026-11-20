@@ -54,7 +54,7 @@ private fun MainActivity.setupFilterSpinners() {
             this,
             android.R.layout.simple_spinner_dropdown_item,
             listOf(
-                "全部触发", "链接", "应用启动", "数据短信", "定时", "屏幕开关", "电量", "飞行模式", "蓝牙", "充电",
+                "全部触发器", "打开链接", "应用启动", "数据短信", "定时器", "屏幕开关", "电量", "飞行模式", "蓝牙", "充电",
                 "耳机", "热点", "静音", "WiFi", "WiFi名称", "信号", "底座", "VPN", "GPS", "解锁", "剪贴板",
                 "深色模式", "媒体按键", "通知",
             ),
@@ -63,7 +63,7 @@ private fun MainActivity.setupFilterSpinners() {
         ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
-            listOf("全部动作", "通知", "打开链接", "发送数据短信"),
+            listOf("全部动作", "显示通知", "打开网址", "发送数据短信"),
         )
     triggerSpinner.onItemSelectedListener =
         simpleSpinnerListener {
@@ -171,7 +171,7 @@ private fun MainActivity.renderLog(logView: ListView) {
                 val format = java.text.SimpleDateFormat("MM-dd HH:mm:ss", java.util.Locale.getDefault())
                 val time = format.format(java.util.Date(entry.timestamp))
                 val status = if (entry.report.success) "成功" else "失败"
-                "$time • $status • 匹配 ${entry.report.matchedRuleCount} 条 • 执行 ${entry.report.actionResults.size} 个动作"
+                "$time • $status • 匹配 ${entry.report.matchedRuleCount} 个宏 • 执行 ${entry.report.actionResults.size} 个动作"
             },
         )
     findViewById<View>(R.id.logs_empty).visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
@@ -183,7 +183,7 @@ private fun MainActivity.showLogDetail(entry: dev.niza.autodroid.engine.Executio
     val time = format.format(java.util.Date(entry.timestamp))
     val details =
         buildString {
-            append("匹配规则：${entry.report.matchedRuleCount}")
+            append("匹配宏：${entry.report.matchedRuleCount}")
             append('\n')
             append("执行结果：${if (entry.report.success) "成功" else "失败"}")
             entry.report.actionResults.forEach { result ->
@@ -260,7 +260,7 @@ private class RuleAdapter(
         val triggerValue = rule.trigger.value.orEmpty()
         val actionValue = rule.actions.firstOrNull()?.summary.orEmpty()
         title.text = rule.name
-        detail.text = "触发：$trigger $triggerValue\n动作：$action $actionValue"
+        detail.text = "触发器：$trigger $triggerValue\n动作：$action $actionValue"
         state.text = if (rule.enabled) "已启用" else "已停用"
         state.setTextColor(if (rule.enabled) 0xFF176B4C.toInt() else 0xFF9A3B3B.toInt())
         return row

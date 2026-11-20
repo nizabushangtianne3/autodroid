@@ -7,22 +7,22 @@ import kotlin.test.assertNull
 class RuleEditorLogicTest {
     @Test
     fun `hints change by trigger type`() {
-        assertEquals("Link host", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_LINK))
-        assertEquals("App package name", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_APP))
-        assertEquals("Data SMS destination port", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_DATA_SMS))
+        assertEquals("链接主机，例如 example.com", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_LINK))
+        assertEquals("应用包名", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_APP))
+        assertEquals("数据短信目标端口", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_DATA_SMS))
     }
 
     @Test
     fun `trigger validation covers all types`() {
-        assertEquals("Link host is required", RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_LINK, " "))
+        assertEquals("请输入链接主机", RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_LINK, " "))
         assertNull(RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_LINK, "example.com"))
         assertEquals(
-            "Invalid Android package name",
+            "请输入有效 Android 包名",
             RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_APP, "example"),
         )
         assertNull(RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_APP, "com.example.app"))
         assertEquals(
-            "Data SMS port must be 1-65535",
+            "数据短信端口必须是 1-65535",
             RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_DATA_SMS, "0"),
         )
         assertNull(RuleEditorLogic.validateTrigger(RuleEditorLogic.TYPE_DATA_SMS, "65535"))
@@ -31,27 +31,27 @@ class RuleEditorLogicTest {
     @Test
     fun `action validation covers all types`() {
         assertEquals(
-            "Notification title is required",
+            "请输入通知标题",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_NOTIFY, "", "body", ""),
         )
         assertEquals(
-            "Notification body is required",
+            "请输入通知内容",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_NOTIFY, "title", " ", ""),
         )
         assertEquals(
-            "URL is required",
+            "请输入网址",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_OPEN_URL, "", "", ""),
         )
         assertEquals(
-            "Destination phone number is required",
+            "请输入手机号码",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_SEND_DATA_SMS, "", "0102", "1"),
         )
         assertEquals(
-            "Action port must be 1-65535",
+            "动作端口必须是 1-65535",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_SEND_DATA_SMS, "+100", "0102", "0"),
         )
         assertEquals(
-            "Payload hex is required",
+            "请输入有效 HEX 数据",
             RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_SEND_DATA_SMS, "+100", "XYZ", "1"),
         )
         assertNull(RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_SEND_DATA_SMS, "+100", "0102", "1"))

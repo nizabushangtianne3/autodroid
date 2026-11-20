@@ -32,43 +32,43 @@ object RuleEditorLogic {
 
     fun triggerHint(typePosition: Int): String =
         when (typePosition) {
-            TYPE_APP -> "App package name"
-            TYPE_DATA_SMS -> "Data SMS destination port"
-            TYPE_SCHEDULE -> "Interval milliseconds"
-            TYPE_SCREEN_ON_OFF -> "Screen on (true/false)"
-            TYPE_BATTERY_LEVEL -> "Battery level percentage"
-            TYPE_AIRPLANE_MODE -> "Airplane enabled (true/false)"
-            TYPE_BLUETOOTH -> "Bluetooth enabled (true/false)"
-            TYPE_EXTERNAL_POWER -> "Power connected (true/false)"
-            TYPE_HEADPHONES -> "Headphones connected (true/false)"
-            TYPE_HOTSPOT -> "Hotspot enabled (true/false)"
-            TYPE_SILENT_MODE -> "Silent mode enabled (true/false)"
-            TYPE_WIFI_CONNECTION -> "WiFi connected (true/false)"
-            TYPE_WIFI_SSID -> "WiFi SSID"
-            TYPE_SIGNAL_ON_OFF -> "Signal on (true/false)"
-            TYPE_DOCK -> "Dock state"
-            TYPE_VPN -> "VPN connected (true/false)"
-            TYPE_GPS_ENABLED -> "GPS enabled (true/false)"
-            TYPE_DEVICE_UNLOCKED -> "Trigger on unlock"
-            TYPE_CLIPBOARD_CHANGE -> "Trigger on clipboard change"
-            TYPE_DARK_THEME -> "Dark theme enabled (true/false)"
-            TYPE_MEDIA_BUTTON -> "Media button name"
-            TYPE_NOTIFICATION -> "App package (optional)"
-            else -> "Link host"
+            TYPE_APP -> "应用包名"
+            TYPE_DATA_SMS -> "数据短信目标端口"
+            TYPE_SCHEDULE -> "间隔毫秒"
+            TYPE_SCREEN_ON_OFF -> "屏幕开启 true / 关闭 false"
+            TYPE_BATTERY_LEVEL -> "电量百分比"
+            TYPE_AIRPLANE_MODE -> "飞行模式 true / false"
+            TYPE_BLUETOOTH -> "蓝牙开启 true / false"
+            TYPE_EXTERNAL_POWER -> "充电连接 true / false"
+            TYPE_HEADPHONES -> "耳机连接 true / false"
+            TYPE_HOTSPOT -> "热点开启 true / false"
+            TYPE_SILENT_MODE -> "静音开启 true / false"
+            TYPE_WIFI_CONNECTION -> "WiFi连接 true / false"
+            TYPE_WIFI_SSID -> "WiFi 名称"
+            TYPE_SIGNAL_ON_OFF -> "信号开启 true / false"
+            TYPE_DOCK -> "底座状态"
+            TYPE_VPN -> "VPN连接 true / false"
+            TYPE_GPS_ENABLED -> "GPS开启 true / false"
+            TYPE_DEVICE_UNLOCKED -> "留空即可，解锁时触发"
+            TYPE_CLIPBOARD_CHANGE -> "留空即可，剪贴板变化时触发"
+            TYPE_DARK_THEME -> "深色模式 true / false"
+            TYPE_MEDIA_BUTTON -> "媒体按键名"
+            TYPE_NOTIFICATION -> "应用包名，可留空"
+            else -> "链接主机，例如 example.com"
         }
 
     fun actionHint(typePosition: Int): String =
         when (typePosition) {
-            ACTION_OPEN_URL -> "URL"
-            ACTION_SEND_DATA_SMS -> "Destination phone number"
-            else -> "Notification title"
+            ACTION_OPEN_URL -> "网址"
+            ACTION_SEND_DATA_SMS -> "手机号码"
+            else -> "通知标题"
         }
 
     fun actionExtraHint(typePosition: Int): String =
         when (typePosition) {
-            ACTION_OPEN_URL -> "Unused"
-            ACTION_SEND_DATA_SMS -> "Payload hex"
-            else -> "Notification body"
+            ACTION_OPEN_URL -> "可留空"
+            ACTION_SEND_DATA_SMS -> "数据内容 HEX"
+            else -> "通知内容"
         }
 
     fun validateTrigger(
@@ -80,20 +80,20 @@ object RuleEditorLogic {
                 if (PACKAGE_NAME_PATTERN.matches(value)) {
                     null
                 } else {
-                    "Invalid Android package name"
+                    "请输入有效 Android 包名"
                 }
-            TYPE_LINK -> if (value.isBlank()) "Link host is required" else null
+            TYPE_LINK -> if (value.isBlank()) "请输入链接主机" else null
             TYPE_DATA_SMS -> {
                 val port = value.toIntOrNull()
-                if (port == null || port !in 1..65535) "Data SMS port must be 1-65535" else null
+                if (port == null || port !in 1..65535) "数据短信端口必须是 1-65535" else null
             }
             TYPE_SCHEDULE -> {
                 val interval = value.toLongOrNull()
-                if (interval == null || interval < 1000) "Interval must be at least 1000ms" else null
+                if (interval == null || interval < 1000) "间隔至少 1000 毫秒" else null
             }
             TYPE_BATTERY_LEVEL -> {
                 val level = value.toIntOrNull()
-                if (level == null || level !in 0..100) "Battery level must be 0-100" else null
+                if (level == null || level !in 0..100) "电量必须是 0-100" else null
             }
             TYPE_SCREEN_ON_OFF,
             TYPE_AIRPLANE_MODE,
@@ -107,10 +107,10 @@ object RuleEditorLogic {
             TYPE_VPN,
             TYPE_GPS_ENABLED,
             -> {
-                if (value.toBooleanStrictOrNull() == null) "Value must be true or false" else null
+                if (value.toBooleanStrictOrNull() == null) "请输入 true 或 false" else null
             }
             TYPE_WIFI_SSID, TYPE_DOCK -> {
-                if (value.isBlank()) "Value is required" else null
+                if (value.isBlank()) "请输入值" else null
             }
             else -> null
         }
@@ -123,20 +123,20 @@ object RuleEditorLogic {
     ): String? {
         if (value.isBlank()) {
             return when (typePosition) {
-                ACTION_OPEN_URL -> "URL is required"
-                ACTION_SEND_DATA_SMS -> "Destination phone number is required"
-                else -> "Notification title is required"
+                ACTION_OPEN_URL -> "请输入网址"
+                ACTION_SEND_DATA_SMS -> "请输入手机号码"
+                else -> "请输入通知标题"
             }
         }
         return when (typePosition) {
             ACTION_OPEN_URL -> null
             ACTION_SEND_DATA_SMS ->
                 when {
-                    port.toIntOrNull() !in 1..65535 -> "Action port must be 1-65535"
-                    parseHex(extra).isEmpty() -> "Payload hex is required"
+                    port.toIntOrNull() !in 1..65535 -> "动作端口必须是 1-65535"
+                    parseHex(extra).isEmpty() -> "请输入有效 HEX 数据"
                     else -> null
                 }
-            else -> if (extra.isBlank()) "Notification body is required" else null
+            else -> if (extra.isBlank()) "请输入通知内容" else null
         }
     }
 
@@ -192,35 +192,35 @@ object RuleEditorLogic {
 
     fun actionLabel(action: dev.niza.autodroid.engine.Action?): String =
         when (action) {
-            is dev.niza.autodroid.engine.OpenUrlAction -> "Open URL"
-            is dev.niza.autodroid.engine.SendDataSmsAction -> "Send SMS"
-            else -> "Notify"
+            is dev.niza.autodroid.engine.OpenUrlAction -> "打开网址"
+            is dev.niza.autodroid.engine.SendDataSmsAction -> "发送数据短信"
+            else -> "显示通知"
         }
 
     fun triggerLabel(trigger: dev.niza.autodroid.engine.Trigger): String =
         when (trigger) {
-            is dev.niza.autodroid.engine.AppLaunchedTrigger -> "App"
-            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "SMS"
-            is dev.niza.autodroid.engine.ScheduleTrigger -> "Schedule"
-            is dev.niza.autodroid.engine.ScreenOnOffTrigger -> "Screen"
-            is dev.niza.autodroid.engine.BatteryLevelTrigger -> "Battery"
-            is dev.niza.autodroid.engine.AirplaneModeTrigger -> "Airplane"
-            is dev.niza.autodroid.engine.BluetoothTrigger -> "Bluetooth"
-            is dev.niza.autodroid.engine.ExternalPowerTrigger -> "Power"
-            is dev.niza.autodroid.engine.HeadphonesTrigger -> "Headphones"
-            is dev.niza.autodroid.engine.HotspotTrigger -> "Hotspot"
-            is dev.niza.autodroid.engine.SilentModeTrigger -> "Silent"
+            is dev.niza.autodroid.engine.AppLaunchedTrigger -> "应用启动"
+            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> "数据短信"
+            is dev.niza.autodroid.engine.ScheduleTrigger -> "定时器"
+            is dev.niza.autodroid.engine.ScreenOnOffTrigger -> "屏幕开关"
+            is dev.niza.autodroid.engine.BatteryLevelTrigger -> "电量"
+            is dev.niza.autodroid.engine.AirplaneModeTrigger -> "飞行模式"
+            is dev.niza.autodroid.engine.BluetoothTrigger -> "蓝牙"
+            is dev.niza.autodroid.engine.ExternalPowerTrigger -> "充电"
+            is dev.niza.autodroid.engine.HeadphonesTrigger -> "耳机"
+            is dev.niza.autodroid.engine.HotspotTrigger -> "热点"
+            is dev.niza.autodroid.engine.SilentModeTrigger -> "静音"
             is dev.niza.autodroid.engine.WifiConnectionTrigger -> "WiFi"
-            is dev.niza.autodroid.engine.WifiSSIDTrigger -> "WiFi SSID"
-            is dev.niza.autodroid.engine.SignalOnOffTrigger -> "Signal"
-            is dev.niza.autodroid.engine.DockTrigger -> "Dock"
+            is dev.niza.autodroid.engine.WifiSSIDTrigger -> "WiFi名称"
+            is dev.niza.autodroid.engine.SignalOnOffTrigger -> "信号"
+            is dev.niza.autodroid.engine.DockTrigger -> "底座"
             is dev.niza.autodroid.engine.VpnTrigger -> "VPN"
             is dev.niza.autodroid.engine.GPSEnabledTrigger -> "GPS"
-            is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> "Unlock"
-            is dev.niza.autodroid.engine.ClipboardChangeTrigger -> "Clipboard"
-            is dev.niza.autodroid.engine.DarkThemeTrigger -> "Dark Theme"
-            is dev.niza.autodroid.engine.MediaButtonTrigger -> "Media Button"
-            is dev.niza.autodroid.engine.NotificationTrigger -> "Notification"
-            else -> "Link"
+            is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> "解锁"
+            is dev.niza.autodroid.engine.ClipboardChangeTrigger -> "剪贴板"
+            is dev.niza.autodroid.engine.DarkThemeTrigger -> "深色模式"
+            is dev.niza.autodroid.engine.MediaButtonTrigger -> "媒体按键"
+            is dev.niza.autodroid.engine.NotificationTrigger -> "通知"
+            else -> "打开链接"
         }
 }

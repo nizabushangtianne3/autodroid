@@ -56,13 +56,13 @@ object Runtime {
             return
         }
         val manager = NotificationManagerCompat.from(appContext)
-        val title = if (report.success) "Automation succeeded" else "Automation failed"
+        val title = if (report.success) "宏执行成功" else "宏执行失败"
         val text =
             buildString {
-                append("Matched rules: ${report.matchedRuleCount}")
+                append("匹配宏：${report.matchedRuleCount}")
                 report.actionResults.forEach { result ->
                     append('\n')
-                    append("${result.actionId}: ${if (result.success) "OK" else "FAILED"}")
+                    append("${result.actionId}：${if (result.success) "成功" else "失败"}")
                     result.message?.let { append(" • $it") }
                 }
             }

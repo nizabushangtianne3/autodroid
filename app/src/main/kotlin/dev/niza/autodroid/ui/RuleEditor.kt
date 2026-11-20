@@ -30,7 +30,7 @@ class RuleEditor(private val activity: MainActivity) {
     ) {
         val name =
             EditText(activity).apply {
-                hint = "Rule name"
+                hint = "宏名称"
                 setText(rule.name)
             }
         val triggerType =
@@ -40,11 +40,10 @@ class RuleEditor(private val activity: MainActivity) {
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
                         listOf(
-                            "Link", "App", "Data SMS", "Schedule",
-                            "Screen On/Off", "Battery Level", "Airplane Mode", "Bluetooth",
-                            "Power", "Headphones", "Hotspot", "Silent Mode",
-                            "WiFi Connection", "WiFi SSID", "Signal On/Off", "Dock", "VPN", "GPS",
-                            "Device Unlocked", "Clipboard", "Dark Theme", "Media Button", "Notification",
+                            "打开链接", "应用启动", "数据短信", "定时器",
+                            "屏幕开关", "电量", "飞行模式", "蓝牙", "充电", "耳机", "热点", "静音",
+                            "WiFi连接", "WiFi名称", "信号开关", "底座", "VPN", "GPS", "解锁", "剪贴板",
+                            "深色模式", "媒体按键", "通知",
                         ),
                     )
                 setSelection(
@@ -134,7 +133,7 @@ class RuleEditor(private val activity: MainActivity) {
             }
         val triggerSender =
             EditText(activity).apply {
-                hint = "SMS sender (optional)"
+                hint = "短信发送方，可留空"
                 setText((rule.trigger as? DataSmsReceivedTrigger)?.sender.orEmpty())
             }
         val actionType =
@@ -143,7 +142,7 @@ class RuleEditor(private val activity: MainActivity) {
                     ArrayAdapter(
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
-                        listOf("Notify", "Open URL", "Send Data SMS"),
+                        listOf("显示通知", "打开网址", "发送数据短信"),
                     )
                 setSelection(
                     when (rule.actions.firstOrNull()) {
@@ -157,7 +156,7 @@ class RuleEditor(private val activity: MainActivity) {
         val actionExtraHintFor = RuleEditorLogic::actionExtraHint
         val actionPort =
             EditText(activity).apply {
-                hint = "Data SMS destination port"
+                hint = "数据短信目标端口"
                 inputType = android.text.InputType.TYPE_CLASS_NUMBER
                 setText((rule.actions.firstOrNull() as? SendDataSmsAction)?.destinationPort?.toString().orEmpty())
             }
@@ -214,7 +213,7 @@ class RuleEditor(private val activity: MainActivity) {
             }
         val enabled =
             CheckBox(activity).apply {
-                text = "Enabled"
+                text = activity.getString(R.string.enabled)
                 isChecked = rule.enabled
             }
         val form =

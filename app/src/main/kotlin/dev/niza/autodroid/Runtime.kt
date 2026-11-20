@@ -89,9 +89,11 @@ object Runtime {
 
     fun loadRules(context: Context) {
         val payload =
-            context.openFileInput(RULES_FILE).use { input ->
-                input.bufferedReader().readText()
-            }
+            runCatching {
+                context.openFileInput(RULES_FILE).use { input ->
+                    input.bufferedReader().readText()
+                }
+            }.getOrNull() ?: return
         loadRules(RuleStore().decode(payload))
     }
 

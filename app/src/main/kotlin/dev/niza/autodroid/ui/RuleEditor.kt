@@ -142,7 +142,9 @@ class RuleEditor(private val activity: MainActivity) {
                     ArrayAdapter(
                         activity,
                         android.R.layout.simple_spinner_dropdown_item,
-                        listOf("显示通知", "打开网址", "发送数据短信"),
+                        listOf(
+                            "显示通知", "打开网址", "发送数据短信", "设置变量", "如果", "否则", "结束如果", "等待", "重复", "结束重复",
+                        ),
                     )
                 setSelection(
                     when (rule.actions.firstOrNull()) {
@@ -175,6 +177,10 @@ class RuleEditor(private val activity: MainActivity) {
                         is NotifyAction -> action.title
                         is OpenUrlAction -> action.url
                         is SendDataSmsAction -> action.sender
+                        is dev.niza.autodroid.engine.SetVariableAction -> action.name
+                        is dev.niza.autodroid.engine.IfConditionAction -> action.expression
+                        is dev.niza.autodroid.engine.WaitAction -> action.durationMillis.toString()
+                        is dev.niza.autodroid.engine.RepeatStartAction -> action.count.toString()
                         else -> ""
                     },
                 )
@@ -193,6 +199,7 @@ class RuleEditor(private val activity: MainActivity) {
                     when (val action = rule.actions.firstOrNull()) {
                         is NotifyAction -> action.body
                         is SendDataSmsAction -> action.payload.joinToString("") { "%02X".format(it) }
+                        is dev.niza.autodroid.engine.SetVariableAction -> action.value
                         else -> ""
                     },
                 )
@@ -306,20 +313,19 @@ class RuleEditor(private val activity: MainActivity) {
                             dev.niza.autodroid.engine.NotificationTrigger(triggerId, packageName = value.ifBlank { null })
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }
+                val action =
+                    buildAction(
+                        sequence,
+                        actionType.selectedItemPosition,
+                        actionValueText,
+                        actionExtraText,
+                        actionPortText,
+                    )
                 val updated =
                     rule.copy(
                         name = name.text.toString(),
                         trigger = trigger,
-                        actions =
-                            listOf(
-                                buildAction(
-                                    sequence,
-                                    actionType.selectedItemPosition,
-                                    actionValueText,
-                                    actionExtraText,
-                                    actionPortText,
-                                ),
-                            ),
+                        actions = listOf(action),
                         enabled = enabled.isChecked,
                     )
                 Runtime.engine.replace(updated)
@@ -349,6 +355,14 @@ class RuleEditor(private val activity: MainActivity) {
                     sender = value,
                     payload = RuleEditorLogic.parseHex(extra),
                 )
+            RuleEditorLogic.ACTION_SET_VARIABLE -> dev.niza.autodroid.engine.SetVariableAction(actionId, value, extra)
+            RuleEditorLogic.ACTION_IF_CONDITION -> dev.niza.autodroid.engine.IfConditionAction(actionId, value)
+            RuleEditorLogic.ACTION_ELSE_CONDITION -> dev.niza.autodroid.engine.ElseConditionAction(actionId)
+            RuleEditorLogic.ACTION_END_IF -> dev.niza.autodroid.engine.EndIfAction(actionId)
+            RuleEditorLogic.ACTION_WAIT -> dev.niza.autodroid.engine.WaitAction(actionId, value.toLongOrNull() ?: 0)
+            RuleEditorLogic.ACTION_REPEAT_START ->
+                dev.niza.autodroid.engine.RepeatStartAction(actionId, value.toIntOrNull() ?: 1)
+            RuleEditorLogic.ACTION_REPEAT_END -> dev.niza.autodroid.engine.RepeatEndAction(actionId)
             else -> NotifyAction(actionId, title = value, body = extra)
         }
     }

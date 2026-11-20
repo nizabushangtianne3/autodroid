@@ -62,6 +62,10 @@ ActivityRecognition, AndroidWear, AppEnabled, ApplicationInstalledRemoved, Assis
 
 Planned: BatteryLevel, BatterySaver, Bluetooth, CellConnection, Day/Time, DeviceLocked/Unlocked, ExternalPower, GPSEnabled, Headphones, NetworkType, ScreenOnOff, SilentMode, TriggerEnabled, Variable, Wifi, AirplaneMode
 
+Implemented model/runtime API: BatteryLevel ✅, BatterySaver ✅, Bluetooth ✅, CellConnection ✅, Day/Time ✅, DeviceLocked/Unlocked ✅, ExternalPower ✅, GPSEnabled ✅, Headphones ✅, NetworkType ✅, ScreenOnOff ✅, SilentMode ✅, TriggerEnabled ✅, Variable ✅, Wifi ✅, AirplaneMode ✅
+
+Editor persistence and live Android `DeviceState` sampling remain planned for the next batch.
+
 ## Naming and Branding
 
 AutoDroid uses its own class names, package namespace (`dev.niza.autodroid`), UI strings, and icons. Behavior parity does not imply code or asset parity. Every implementation is written from public Android API documentation.

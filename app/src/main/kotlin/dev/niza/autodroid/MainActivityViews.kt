@@ -1,6 +1,5 @@
 package dev.niza.autodroid
 
-import android.graphics.Typeface
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -9,6 +8,7 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
@@ -224,45 +224,22 @@ private class RuleAdapter(
     ): View {
         val context = parent.context
         val row =
-            convertView as? android.widget.LinearLayout ?: android.widget.LinearLayout(context).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                val density = resources.displayMetrics.density
-                setPadding(
-                    (16 * density).toInt(),
-                    (14 * density).toInt(),
-                    (16 * density).toInt(),
-                    (14 * density).toInt(),
-                )
-            }
+            convertView ?: android.view.LayoutInflater.from(context).inflate(R.layout.item_macro, parent, false)
         val rule = getItem(position)
-        val title =
-            row.findViewWithTag<TextView>("title") ?: TextView(context).apply {
-                tag = "title"
-                textSize = 16f
-                setTypeface(typeface, Typeface.BOLD)
-                row.addView(this)
-            }
-        val detail =
-            row.findViewWithTag<TextView>("detail") ?: TextView(context).apply {
-                tag = "detail"
-                textSize = 13f
-                setTextColor(0xFF606060.toInt())
-                row.addView(this)
-            }
-        val state =
-            row.findViewWithTag<TextView>("state") ?: TextView(context).apply {
-                tag = "state"
-                textSize = 12f
-                row.addView(this)
-            }
         val trigger = RuleEditorLogic.triggerLabel(rule.trigger)
         val action = RuleEditorLogic.actionLabel(rule.actions.firstOrNull())
         val triggerValue = rule.trigger.value.orEmpty()
         val actionValue = rule.actions.firstOrNull()?.summary.orEmpty()
-        title.text = rule.name
-        detail.text = "触发器：$trigger $triggerValue\n动作：$action $actionValue"
-        state.text = if (rule.enabled) "已启用" else "已停用"
-        state.setTextColor(if (rule.enabled) 0xFF176B4C.toInt() else 0xFF9A3B3B.toInt())
+        row.findViewById<TextView>(R.id.macro_name).text = rule.name
+        row.findViewById<TextView>(R.id.trigger_type).text = "触发器"
+        row.findViewById<TextView>(R.id.trigger_value).text = "$trigger\n$triggerValue"
+        row.findViewById<TextView>(R.id.action_type).text = "动作"
+        row.findViewById<TextView>(R.id.action_value).text = "$action\n$actionValue"
+        row.findViewById<TextView>(R.id.constraint_count).text = "约束 ${rule.constraints.size} 项"
+        row.findViewById<TextView>(R.id.macro_status).text = if (rule.enabled) "已启用" else "已停用"
+        row.findViewById<TextView>(R.id.macro_status).setTextColor(
+            ContextCompat.getColor(context, if (rule.enabled) R.color.md_enabled_green else R.color.md_disabled_gray),
+        )
         return row
     }
 }

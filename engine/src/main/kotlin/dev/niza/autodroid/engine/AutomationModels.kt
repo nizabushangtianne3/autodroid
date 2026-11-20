@@ -1,5 +1,6 @@
 package dev.niza.autodroid.engine
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -50,6 +51,242 @@ val Action.summary: String
             is RepeatStartAction -> "repeat ${count}x"
             is RepeatEndAction -> "end repeat"
         }
+
+@Serializable
+sealed interface Constraint {
+    val id: String
+
+    fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean
+}
+
+@Serializable
+@SerialName("constraint_battery_level")
+data class BatteryLevelConstraint(
+    override val id: String,
+    val level: Int,
+    val direction: String = "above",
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.batteryLevel?.let { if (direction == "below") it <= level else it >= level } ?: false
+}
+
+@Serializable
+@SerialName("constraint_battery_saver")
+data class BatterySaverConstraint(
+    override val id: String,
+    val enabled: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.batterySaver == enabled
+}
+
+@Serializable
+@SerialName("constraint_bluetooth")
+data class BluetoothConstraint(
+    override val id: String,
+    val enabled: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.bluetoothEnabled == enabled
+}
+
+@Serializable
+@SerialName("constraint_cell_connection")
+data class CellConnectionConstraint(
+    override val id: String,
+    val requiredType: String,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.cellConnectionType == requiredType
+}
+
+@Serializable
+@SerialName("constraint_day_time")
+data class DayTimeConstraint(
+    override val id: String,
+    val startMinuteOfDay: Int,
+    val endMinuteOfDay: Int,
+    val days: List<Int> = listOf(1, 2, 3, 4, 5, 6, 7),
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean {
+        val calendar = state.calendar
+        if (calendar == null) return true
+        val day = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+        val dayMatches = days.contains(if (day == java.util.Calendar.SUNDAY) 7 else day - 1)
+        if (!dayMatches) return false
+        val minute = calendar.get(java.util.Calendar.HOUR_OF_DAY) * 60 + calendar.get(java.util.Calendar.MINUTE)
+        return if (startMinuteOfDay <= endMinuteOfDay) {
+            minute in startMinuteOfDay..endMinuteOfDay
+        } else {
+            minute >= startMinuteOfDay || minute <= endMinuteOfDay
+        }
+    }
+}
+
+@Serializable
+@SerialName("constraint_device_locked")
+data class DeviceLockedConstraint(
+    override val id: String,
+    val locked: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.deviceLocked == locked
+}
+
+@Serializable
+@SerialName("constraint_external_power")
+data class ExternalPowerConstraint(
+    override val id: String,
+    val connected: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.externalPowerConnected == connected
+}
+
+@Serializable
+@SerialName("constraint_gps_enabled")
+data class GPSEnabledConstraint(
+    override val id: String,
+    val enabled: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.gpsEnabled == enabled
+}
+
+@Serializable
+@SerialName("constraint_headphones")
+data class HeadphonesConstraint(
+    override val id: String,
+    val connected: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.headphonesConnected == connected
+}
+
+@Serializable
+@SerialName("constraint_network_type")
+data class NetworkTypeConstraint(
+    override val id: String,
+    val requiredType: String,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.networkType == requiredType
+}
+
+@Serializable
+@SerialName("constraint_screen_on_off")
+data class ScreenOnOffConstraint(
+    override val id: String,
+    val screenOn: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.screenOn == screenOn
+}
+
+@Serializable
+@SerialName("constraint_silent_mode")
+data class SilentModeConstraint(
+    override val id: String,
+    val enabled: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.silentModeEnabled == enabled
+}
+
+@Serializable
+@SerialName("constraint_trigger_enabled")
+data class TriggerEnabledConstraint(
+    override val id: String,
+    val triggerId: String,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.enabledTriggerIds.contains(triggerId)
+}
+
+@Serializable
+@SerialName("constraint_variable")
+data class VariableConstraint(
+    override val id: String,
+    val expression: String,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = evaluateBooleanExpression(expression, variables)
+}
+
+@Serializable
+@SerialName("constraint_wifi")
+data class WifiConstraint(
+    override val id: String,
+    val connected: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.wifiConnected == connected
+}
+
+@Serializable
+@SerialName("constraint_airplane_mode")
+data class AirplaneModeConstraint(
+    override val id: String,
+    val enabled: Boolean,
+) : Constraint {
+    override fun satisfied(
+        state: DeviceState,
+        variables: Map<String, String>,
+    ): Boolean = state.airplaneModeEnabled == enabled
+}
+
+@Serializable
+data class DeviceState(
+    val batteryLevel: Int? = null,
+    val batterySaver: Boolean = false,
+    val bluetoothEnabled: Boolean = false,
+    val cellConnectionType: String = "unknown",
+    @Contextual val calendar: java.util.Calendar? = null,
+    val deviceLocked: Boolean = false,
+    val externalPowerConnected: Boolean = false,
+    val gpsEnabled: Boolean = false,
+    val headphonesConnected: Boolean = false,
+    val networkType: String = "unknown",
+    val screenOn: Boolean = false,
+    val silentModeEnabled: Boolean = false,
+    val enabledTriggerIds: Set<String> = emptySet(),
+    val wifiConnected: Boolean = false,
+    val airplaneModeEnabled: Boolean = false,
+)
 
 @Serializable
 @SerialName("link")
@@ -302,6 +539,7 @@ data class Rule(
     val name: String,
     val trigger: Trigger,
     val conditions: List<Condition> = emptyList(),
+    val constraints: List<Constraint> = emptyList(),
     val actions: List<Action>,
     val enabled: Boolean = true,
 )

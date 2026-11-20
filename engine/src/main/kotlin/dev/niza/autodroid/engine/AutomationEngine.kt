@@ -314,6 +314,14 @@ class AutomationEngine(
             evaluateExpression(condition.expression)
         }
 
+    fun constraintsSatisfied(
+        rule: Rule,
+        deviceState: DeviceState? = null,
+    ): Boolean =
+        rule.constraints.all { constraint ->
+            constraint.satisfied(deviceState ?: DeviceState(), variables())
+        }
+
     fun evaluateExpression(expression: String): Boolean {
         val resolved = variables.entries.fold(expression) { text, (name, value) -> text.replace("{$name}", value) }
         val orParts = resolved.split("||")
@@ -367,7 +375,10 @@ class AutomationEngine(
 
     fun dispatch(event: TriggerEvent): ExecutionReport {
         event.injectTriggerVariables(this)
-        val matched = rules.filter { it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) }
+        val matched =
+            rules.filter {
+                it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) && constraintsSatisfied(it)
+            }
         val results = matched.flatMap { rule -> executeActionList(rule.actions) }
         val report = ExecutionReport(matchedRuleCount = matched.size, actionResults = results)
         executionLog += ExecutionLogEntry(timestamp = System.currentTimeMillis(), report = report)

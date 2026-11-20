@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="md_trigger_green">#FF2E7D32</color>
+    <color name="md_action_blue">#FF1565C0</color>
+    <color name="md_constraint_orange">#FFEF6C00</color>
+    <color name="md_card_background">#FF232323</color>
+    <color name="md_enabled_green">#FF4CAF50</color>
+    <color name="md_disabled_gray">#FF9E9E9E</color>
+</resources>

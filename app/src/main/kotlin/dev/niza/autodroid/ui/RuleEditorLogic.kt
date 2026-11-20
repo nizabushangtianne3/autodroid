@@ -29,6 +29,13 @@ object RuleEditorLogic {
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
     const val ACTION_SEND_DATA_SMS = 2
+    const val ACTION_SET_VARIABLE = 3
+    const val ACTION_IF_CONDITION = 4
+    const val ACTION_ELSE_CONDITION = 5
+    const val ACTION_END_IF = 6
+    const val ACTION_WAIT = 7
+    const val ACTION_REPEAT_START = 8
+    const val ACTION_REPEAT_END = 9
 
     fun triggerHint(typePosition: Int): String =
         when (typePosition) {
@@ -61,6 +68,13 @@ object RuleEditorLogic {
         when (typePosition) {
             ACTION_OPEN_URL -> "网址"
             ACTION_SEND_DATA_SMS -> "手机号码"
+            ACTION_SET_VARIABLE -> "变量名"
+            ACTION_IF_CONDITION -> "条件，例如 {count} > 50"
+            ACTION_ELSE_CONDITION -> "可留空"
+            ACTION_END_IF -> "可留空"
+            ACTION_WAIT -> "等待毫秒"
+            ACTION_REPEAT_START -> "重复次数"
+            ACTION_REPEAT_END -> "可留空"
             else -> "通知标题"
         }
 
@@ -68,6 +82,13 @@ object RuleEditorLogic {
         when (typePosition) {
             ACTION_OPEN_URL -> "可留空"
             ACTION_SEND_DATA_SMS -> "数据内容 HEX"
+            ACTION_SET_VARIABLE -> "变量值"
+            ACTION_IF_CONDITION -> "可留空"
+            ACTION_ELSE_CONDITION -> "可留空"
+            ACTION_END_IF -> "可留空"
+            ACTION_WAIT -> "可留空"
+            ACTION_REPEAT_START -> "可留空"
+            ACTION_REPEAT_END -> "可留空"
             else -> "通知内容"
         }
 
@@ -130,6 +151,14 @@ object RuleEditorLogic {
         }
         return when (typePosition) {
             ACTION_OPEN_URL -> null
+            ACTION_SET_VARIABLE, ACTION_WAIT, ACTION_REPEAT_START ->
+                when {
+                    value.toLongOrNull() == null -> "请输入数字"
+                    ACTION_WAIT == typePosition && (value.toLongOrNull() ?: 0) < 0 -> "等待时间不能小于 0"
+                    ACTION_REPEAT_START == typePosition && (value.toLongOrNull() ?: 0) < 1 -> "重复次数至少 1"
+                    ACTION_SET_VARIABLE == typePosition && extra.isBlank() -> "请输入变量值"
+                    else -> null
+                }
             ACTION_SEND_DATA_SMS ->
                 when {
                     port.toIntOrNull() !in 1..65535 -> "动作端口必须是 1-65535"
@@ -187,6 +216,13 @@ object RuleEditorLogic {
             when (filterPosition) {
                 ACTION_OPEN_URL -> action is dev.niza.autodroid.engine.OpenUrlAction
                 ACTION_SEND_DATA_SMS -> action is dev.niza.autodroid.engine.SendDataSmsAction
+                ACTION_SET_VARIABLE -> action is dev.niza.autodroid.engine.SetVariableAction
+                ACTION_IF_CONDITION -> action is dev.niza.autodroid.engine.IfConditionAction
+                ACTION_ELSE_CONDITION -> action is dev.niza.autodroid.engine.ElseConditionAction
+                ACTION_END_IF -> action is dev.niza.autodroid.engine.EndIfAction
+                ACTION_WAIT -> action is dev.niza.autodroid.engine.WaitAction
+                ACTION_REPEAT_START -> action is dev.niza.autodroid.engine.RepeatStartAction
+                ACTION_REPEAT_END -> action is dev.niza.autodroid.engine.RepeatEndAction
                 else -> action is dev.niza.autodroid.engine.NotifyAction
             }
 
@@ -194,6 +230,13 @@ object RuleEditorLogic {
         when (action) {
             is dev.niza.autodroid.engine.OpenUrlAction -> "打开网址"
             is dev.niza.autodroid.engine.SendDataSmsAction -> "发送数据短信"
+            is dev.niza.autodroid.engine.SetVariableAction -> "设置变量"
+            is dev.niza.autodroid.engine.IfConditionAction -> "如果"
+            is dev.niza.autodroid.engine.ElseConditionAction -> "否则"
+            is dev.niza.autodroid.engine.EndIfAction -> "结束如果"
+            is dev.niza.autodroid.engine.WaitAction -> "等待"
+            is dev.niza.autodroid.engine.RepeatStartAction -> "重复"
+            is dev.niza.autodroid.engine.RepeatEndAction -> "结束重复"
             else -> "显示通知"
         }
 

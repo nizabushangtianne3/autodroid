@@ -118,6 +118,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun renderLog(logView: ListView) {
         val entries = Runtime.engine.executionLog().reversed()
+        logView.setOnItemClickListener { _, _, position, _ ->
+            val entry = entries.getOrNull(position) ?: return@setOnItemClickListener
+            showLogDetail(entry)
+        }
         logView.adapter =
             ArrayAdapter(
                 this,
@@ -129,6 +133,28 @@ class MainActivity : AppCompatActivity() {
                     "$time • $status • ${entry.report.matchedRuleCount} rules • ${entry.report.actionResults.size} actions"
                 },
             )
+    }
+
+    private fun showLogDetail(entry: dev.niza.autodroid.engine.ExecutionLogEntry) {
+        val format = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        val time = format.format(java.util.Date(entry.timestamp))
+        val details =
+            buildString {
+                append("Matched rules: ${entry.report.matchedRuleCount}")
+                append('\n')
+                append("Success: ${entry.report.success}")
+                entry.report.actionResults.forEach { result ->
+                    append('\n')
+                    append("${result.actionId}: ${if (result.success) "OK" else "FAILED"}")
+                    result.message?.let { append(" • $it") }
+                }
+            }
+        androidx.appcompat.app.AlertDialog
+            .Builder(this)
+            .setTitle(time)
+            .setMessage(details)
+            .setPositiveButton("Close", null)
+            .show()
     }
 
     private fun visibleRules(): List<Rule> =

@@ -7,6 +7,7 @@ class AutoDroidApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         appInstance = this
+        Runtime.deviceStateProvider = AndroidDeviceStateProvider::current
     }
 
     companion object {

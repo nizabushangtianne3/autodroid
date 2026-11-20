@@ -272,6 +272,7 @@ data class NotificationEvent(
 
 class AutomationEngine(
     private val executor: ActionExecutor,
+    @Volatile var deviceState: DeviceState? = null,
 ) {
     private val rules = mutableListOf<Rule>()
     private val variables = mutableMapOf<String, String>()
@@ -377,7 +378,7 @@ class AutomationEngine(
         event.injectTriggerVariables(this)
         val matched =
             rules.filter {
-                it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) && constraintsSatisfied(it)
+                it.enabled && event.matches(it.trigger) && conditionsSatisfied(it) && constraintsSatisfied(it, deviceState)
             }
         val results = matched.flatMap { rule -> executeActionList(rule.actions) }
         val report = ExecutionReport(matchedRuleCount = matched.size, actionResults = results)

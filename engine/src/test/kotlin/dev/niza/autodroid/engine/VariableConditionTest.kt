@@ -17,7 +17,7 @@ class VariableConditionTest {
 
     @Test
     fun `set variable action stores value`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
 
         engine.dispatch(ScheduleFiredEvent())
 
@@ -26,7 +26,7 @@ class VariableConditionTest {
 
     @Test
     fun `numeric condition evaluates against variable`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.setVariable("count", "10")
 
         assertTrue(engine.conditionsSatisfied(scheduleRule(listOf(Condition("{count} >= 5")))))
@@ -37,7 +37,7 @@ class VariableConditionTest {
 
     @Test
     fun `string condition evaluates equality`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.setVariable("state", "on")
 
         assertTrue(engine.conditionsSatisfied(scheduleRule(listOf(Condition("{state} == on")))))
@@ -47,7 +47,7 @@ class VariableConditionTest {
 
     @Test
     fun `all conditions must pass`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.setVariable("count", "10")
         engine.setVariable("state", "on")
 
@@ -75,7 +75,7 @@ class VariableConditionTest {
 
     @Test
     fun `missing variable resolves to empty string`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
 
         assertFalse(engine.conditionsSatisfied(scheduleRule(listOf(Condition("{missing} == x")))))
         assertTrue(engine.conditionsSatisfied(scheduleRule(listOf(Condition("{missing} != x")))))
@@ -83,7 +83,7 @@ class VariableConditionTest {
 
     @Test
     fun `set variable action dispatches and stores`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         var captured: List<ActionResult> = emptyList()
         val rule =
             Rule(

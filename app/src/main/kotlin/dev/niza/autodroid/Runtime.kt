@@ -25,22 +25,28 @@ object Runtime {
 
     private val variables = mutableMapOf<String, String>()
 
+    internal var deviceStateProvider: ((Context) -> dev.niza.autodroid.engine.DeviceState)? = null
+
     val engine: AutomationEngine =
-        AutomationEngine { action ->
-            when (action) {
-                is dev.niza.autodroid.engine.SetVariableAction -> {
-                    variables[action.name] = action.value
-                    ActionResult(action.id, success = true, message = "variable set")
+        AutomationEngine(
+            executor = { action ->
+                when (action) {
+                    is dev.niza.autodroid.engine.SetVariableAction -> {
+                        variables[action.name] = action.value
+                        ActionResult(action.id, success = true, message = "variable set")
+                    }
+                    else ->
+                        runCatching { execute(action) }.fold(
+                            onSuccess = { ActionResult(action.id, success = true, message = it) },
+                            onFailure = { ActionResult(action.id, success = false, message = it.message) },
+                        )
                 }
-                else ->
-                    runCatching { execute(action) }.fold(
-                        onSuccess = { ActionResult(action.id, success = true, message = it) },
-                        onFailure = { ActionResult(action.id, success = false, message = it.message) },
-                    )
-            }
-        }
+            },
+        )
 
     fun dispatchAndReport(event: dev.niza.autodroid.engine.TriggerEvent) {
+        val state = deviceStateProvider?.invoke(appContext ?: return)
+        engine.deviceState = state
         val report = engine.dispatch(event)
         reportExecution(report)
     }

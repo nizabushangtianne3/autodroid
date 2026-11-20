@@ -22,10 +22,12 @@ import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.SendDataSmsAction
+import dev.niza.autodroid.engine.summary
 import dev.niza.autodroid.engine.value
 
 class RuleEditorActivity : AppCompatActivity() {
     private val constraints = mutableListOf<Constraint>()
+    private val actions = mutableListOf<Action>()
     private lateinit var ruleId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +43,8 @@ class RuleEditorActivity : AppCompatActivity() {
         setupToolbar()
         setupTrigger(rule)
         setupAction(rule)
+        actions += rule.actions
+        renderActions()
         setupConstraints(rule)
         setupSave(rule)
     }
@@ -116,6 +120,29 @@ class RuleEditorActivity : AppCompatActivity() {
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             }
+        findViewById<ListView>(R.id.list_actions).setOnItemLongClickListener { _, _, position, _ ->
+            actions.removeAt(position)
+            renderActions()
+            Toast.makeText(this, "已删除动作", Toast.LENGTH_SHORT).show()
+            true
+        }
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.button_add_action)
+            .setOnClickListener {
+                val typePosition = findViewById<AppCompatSpinner>(R.id.spinner_action_type).selectedItemPosition
+                val value = findViewById<EditText>(R.id.input_action_value).text.toString().trim()
+                val extra = findViewById<EditText>(R.id.input_action_extra).text.toString().trim()
+                val port = findViewById<EditText>(R.id.input_action_port).text.toString().trim()
+                val error = RuleEditorLogic.validateAction(typePosition, value, extra, port)
+                if (error != null) {
+                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                actions += buildAction("action-${actions.size + 1}-${System.currentTimeMillis()}", typePosition, value, extra, port)
+                renderActions()
+                findViewById<EditText>(R.id.input_action_value).setText("")
+                findViewById<EditText>(R.id.input_action_extra).setText("")
+                findViewById<EditText>(R.id.input_action_port).setText("")
+            }
     }
 
     private fun setupConstraints(rule: Rule) {
@@ -179,15 +206,6 @@ class RuleEditorActivity : AppCompatActivity() {
                     Toast.makeText(this, triggerError, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                val actionType = findViewById<AppCompatSpinner>(R.id.spinner_action_type).selectedItemPosition
-                val actionValue = findViewById<EditText>(R.id.input_action_value).text.toString()
-                val actionExtra = findViewById<EditText>(R.id.input_action_extra).text.toString()
-                val actionPort = findViewById<EditText>(R.id.input_action_port).text.toString()
-                val actionError = RuleEditorLogic.validateAction(actionType, actionValue, actionExtra, actionPort)
-                if (actionError != null) {
-                    Toast.makeText(this, actionError, Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
                 val name =
                     findViewById<EditText>(R.id.input_macro_name).text.toString().ifBlank { "Untitled Macro" }
                 val updated =
@@ -200,16 +218,7 @@ class RuleEditorActivity : AppCompatActivity() {
                                 triggerValue,
                                 senderInput(),
                             ),
-                        actions =
-                            listOf(
-                                buildAction(
-                                    rule.actions.firstOrNull()?.id ?: "action-1",
-                                    actionType,
-                                    actionValue,
-                                    actionExtra,
-                                    actionPort,
-                                ),
-                            ),
+                        actions = actions.toList(),
                         constraints = constraints.toList(),
                         enabled = findViewById<SwitchCompat>(R.id.switch_enabled).isChecked,
                     )
@@ -227,6 +236,11 @@ class RuleEditorActivity : AppCompatActivity() {
     private fun renderConstraints() {
         findViewById<ListView>(R.id.list_constraints).adapter =
             ArrayAdapter(this, R.layout.item_constraint, constraints.map(ConstraintEditorLogic::label))
+    }
+
+    private fun renderActions() {
+        findViewById<ListView>(R.id.list_actions).adapter =
+            ArrayAdapter(this, R.layout.item_constraint, actions.map { it.summary })
     }
 
     private fun launchablePackages(): List<String> =

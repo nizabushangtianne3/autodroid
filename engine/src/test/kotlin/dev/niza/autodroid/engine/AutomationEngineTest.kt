@@ -63,7 +63,7 @@ class AutomationEngineTest {
 
     @Test
     fun `replace updates existing rule and remove deletes it`() {
-        val engine = AutomationEngine { action -> ActionResult(action.id, true) }
+        val engine = AutomationEngine(executor = { action -> ActionResult(action.id, true) })
         engine.register(
             Rule(
                 id = "r1",

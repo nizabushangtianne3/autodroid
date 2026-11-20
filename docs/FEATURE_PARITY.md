@@ -78,3 +78,10 @@ Editor persistence and live Android `DeviceState` sampling remain planned for th
 ## Naming and Branding
 
 AutoDroid uses its own class names, package namespace (`dev.niza.autodroid`), UI strings, and icons. Behavior parity does not imply code or asset parity. Every implementation is written from public Android API documentation.
+## Runtime and Action Progress
+
+- Engine dispatch now receives live Android `DeviceState` before constraint evaluation.
+- `AndroidDeviceStateProvider` samples battery level/saver, Bluetooth, WiFi, network type, cellular,
+  airplane mode, GPS/location, headphones, power, screen, lock state, silent mode, and time.
+- Macro editor now stores and renders an ordered action list; actions can be added and long-press removed.
+- Engine tests were updated for the explicit `executor` constructor parameter.

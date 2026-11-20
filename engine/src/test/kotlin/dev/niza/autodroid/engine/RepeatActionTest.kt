@@ -42,7 +42,7 @@ class RepeatActionTest {
 
     @Test
     fun `repeat with set variable uses loop index`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.register(
             scheduleRule(
                 listOf(

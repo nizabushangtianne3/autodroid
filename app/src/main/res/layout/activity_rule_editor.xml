@@ -110,6 +110,13 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="12dp" />
 
+                <ListView
+                    android:id="@+id/list_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:divider="@null" />
+
                 <EditText
                     android:id="@+id/input_action_value"
                     android:layout_width="match_parent"
@@ -135,6 +142,14 @@
                     android:inputType="number"
                     android:textColor="@android:color/white"
                     android:textColorHint="#FF9AA6AC" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_add_action"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Add Action"
+                    app:backgroundTint="#FF1F5F74" />
             </LinearLayout>
 
             <LinearLayout

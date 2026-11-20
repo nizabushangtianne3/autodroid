@@ -25,7 +25,7 @@ class TriggerVariableTest {
 
     @Test
     fun `app launch injects package variable`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.register(scheduleRule(listOf(Condition("{app_package} == com.example.app"))))
 
         engine.dispatch(AppLaunchedEvent("com.example.app"))
@@ -35,7 +35,7 @@ class TriggerVariableTest {
 
     @Test
     fun `battery event injects level variable`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
 
         engine.dispatch(BatteryLevelEvent(42))
 
@@ -44,7 +44,7 @@ class TriggerVariableTest {
 
     @Test
     fun `link opened injects host variables`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
 
         engine.dispatch(LinkOpenedEvent("https", "example.com", "/page"))
 
@@ -55,7 +55,7 @@ class TriggerVariableTest {
 
     @Test
     fun `sms event injects sender and port variables`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
 
         engine.dispatch(DataSmsReceivedEvent(destinationPort = 1234, sender = "+100"))
 
@@ -65,7 +65,7 @@ class TriggerVariableTest {
 
     @Test
     fun `condition uses injected trigger variable`() {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         engine.register(
             Rule(
                 id = "r1",

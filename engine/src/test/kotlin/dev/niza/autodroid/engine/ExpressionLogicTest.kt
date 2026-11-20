@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 
 class ExpressionLogicTest {
     private fun engine(vararg vars: Pair<String, String>): AutomationEngine {
-        val engine = AutomationEngine { ActionResult(it.id, true) }
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
         vars.forEach { (name, value) -> engine.setVariable(name, value) }
         return engine
     }

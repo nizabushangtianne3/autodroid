@@ -85,3 +85,10 @@ AutoDroid uses its own class names, package namespace (`dev.niza.autodroid`), UI
   airplane mode, GPS/location, headphones, power, screen, lock state, silent mode, and time.
 - Macro editor now stores and renders an ordered action list; actions can be added and long-press removed.
 - Engine tests were updated for the explicit `executor` constructor parameter.
+
+## UI Parity Progress
+
+- v0.1.12 rebuilds Home as a two-column tile grid using structural evidence from the decompiled
+  beta build: Home, Macros, Templates and Settings navigation plus the core shortcut tile layout.
+- Tile colors are independent color constants selected to match the observed palette, not copied assets.
+- Macro cards retain Trigger / Actions / Constraints blocks with the red / blue / green hierarchy.

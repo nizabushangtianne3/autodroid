@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="md_background">#FF121212</color>
+    <color name="md_surface">#FF252525</color>
+    <color name="md_primary_bar">#FF2B3A50</color>
+    <color name="md_tile_macros">#FF3E526E</color>
+    <color name="md_tile_add_macro">#FF2F80C3</color>
+    <color name="md_tile_action_blocks">#FF348BB0</color>
+    <color name="md_tile_stopwatches">#FF8F2D56</color>
+    <color name="md_tile_system_log">#FF018E42</color>
+    <color name="md_tile_videos">#FF3F5E5A</color>
+    <color name="md_tile_last_macro">#FF93748A</color>
+    <color name="md_tile_favourites">#FFCB904D</color>
+    <color name="md_tile_geofences">#FF548687</color>
+    <color name="md_tile_cell_towers">#FF5C7A99</color>
+    <color name="md_tile_plugins">#FF3B3B3B</color>
+    <color name="md_tile_quick_run">#FF6457A6</color>
+    <color name="md_card">#FF2D3033</color>
+    <color name="md_text_secondary">#FFAEB6BD</color>
     <color name="md_trigger_green">#FF2E7D32</color>
     <color name="md_action_blue">#FF1565C0</color>
     <color name="md_constraint_orange">#FFEF6C00</color>

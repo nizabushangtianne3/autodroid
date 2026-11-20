@@ -20,10 +20,8 @@ import dev.niza.autodroid.ui.RuleEditorActivity
 
 fun MainActivity.setupViews() {
     val macroList = findViewById<ListView>(R.id.list_rules)
-    val homeMacroList = findViewById<ListView>(R.id.home_macros)
-    val homeActionList = findViewById<ListView>(R.id.home_actions)
     listView = macroList
-    setupHomeState()
+    setupHomeTiles(macroList)
     setupNavigation()
     setupMacroFilters(macroList)
     setupImportExportMenu(macroList)
@@ -42,26 +40,40 @@ fun MainActivity.setupViews() {
         Toast.makeText(this, R.string.delete_confirm, Toast.LENGTH_SHORT).show()
         true
     }
-    homeMacroList.setOnItemClickListener { _, _, position, _ ->
-        openEditor(Runtime.engine.rules()[position].id)
-    }
-    homeActionList.adapter = HomeActionAdapter()
-    homeActionList.setOnItemClickListener { _, _, position, _ ->
-        if (position == 0) showLogDialog() else exportRules.launch("autodroid-rules.json")
+}
+
+private fun MainActivity.setupHomeTiles(macroList: ListView) {
+    val tileActions =
+        mapOf(
+            R.id.tile_macros to { showPage(R.id.macros_page, getString(R.string.rules_title)) },
+            R.id.tile_add_macro to { createRule(macroList) },
+            R.id.tile_action_blocks to { showToast(getString(R.string.tile_action_blocks)) },
+            R.id.tile_stopwatches to { showToast(getString(R.string.tile_stopwatches)) },
+            R.id.tile_system_log to { showLogDialog() },
+            R.id.tile_videos to { showToast(getString(R.string.tile_videos)) },
+            R.id.tile_last_macro to { openLastRule(macroList) },
+            R.id.tile_favourites to { showToast(getString(R.string.tile_favourites)) },
+            R.id.tile_geofences to { showToast(getString(R.string.tile_geofences)) },
+            R.id.tile_cell_towers to { showToast(getString(R.string.tile_cell_towers)) },
+            R.id.tile_plugins to { showToast(getString(R.string.tile_plugins)) },
+            R.id.tile_quick_run to { showToast(getString(R.string.tile_quick_run)) },
+        )
+    tileActions.forEach { (tileId, action) ->
+        findViewById<View>(tileId).setOnClickListener { action() }
     }
 }
 
-private fun MainActivity.setupHomeState() {
-    val calendar = java.util.Calendar.getInstance()
-    val greeting =
-        when (calendar.get(java.util.Calendar.HOUR_OF_DAY)) {
-            in 12..17 -> "Good afternoon 👋"
-            in 18..23 -> "Good evening 👋"
-            else -> "Good morning 👋"
-        }
-    findViewById<TextView>(R.id.home_greeting).text = greeting
-    findViewById<TextView>(R.id.home_date).text =
-        java.text.SimpleDateFormat("EEEE · MMM d", java.util.Locale.getDefault()).format(calendar.time)
+private fun MainActivity.showToast(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}
+
+private fun MainActivity.openLastRule(macroList: ListView) {
+    val rule = Runtime.engine.rules().lastOrNull()
+    if (rule == null) {
+        createRule(macroList)
+    } else {
+        openEditor(rule.id)
+    }
 }
 
 private fun MainActivity.setupNavigation() {
@@ -143,10 +155,9 @@ internal fun MainActivity.openEditor(ruleId: String) {
 fun MainActivity.render(listView: ListView) {
     val rules = visibleRules()
     listView.adapter = MacroAdapter(rules)
-    findViewById<ListView>(R.id.home_macros).adapter = MacroAdapter(Runtime.engine.rules())
+    findViewById<TextView>(R.id.macros_count).text =
+        getString(R.string.macro_count, Runtime.engine.rules().size)
     findViewById<View>(R.id.rules_empty).visibility = if (rules.isEmpty()) View.VISIBLE else View.GONE
-    findViewById<View>(R.id.home_macros_empty).visibility =
-        if (Runtime.engine.rules().isEmpty()) View.VISIBLE else View.GONE
     listView.visibility = if (rules.isEmpty()) View.GONE else View.VISIBLE
 }
 
@@ -190,12 +201,6 @@ private fun MainActivity.renderSettings() {
     findViewById<TextView>(R.id.settings_status).text =
         "宏 ${rules.size} 个\n启用 ${rules.count { it.enabled }} 个\n触发器类型 $triggerTypes 种"
 }
-
-private class HomeActionAdapter : android.widget.ArrayAdapter<String>(
-    AutoDroidApplication.context(),
-    android.R.layout.simple_list_item_1,
-    listOf("打开通知记录", "打开导入 / 导出"),
-)
 
 private class MacroAdapter(
     private val rules: List<Rule>,

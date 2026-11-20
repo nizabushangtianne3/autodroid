@@ -1,13 +1,36 @@
 <resources>
     <style name="Theme.AutoDroid" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">#FF00BCD4</item>
-        <item name="android:statusBarColor">#FF152229</item>
-        <item name="android:navigationBarColor">#FF182B33</item>
+        <item name="colorPrimary">#FF3E526E</item>
+        <item name="android:statusBarColor">@color/md_primary_bar</item>
+        <item name="android:navigationBarColor">@color/md_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
     <style name="Theme.AutoDroid.Transparent">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
+    </style>
+    <style name="Widget.AutoDroid.HomeTile" parent="">
+        <item name="android:layout_height">136dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+    <style name="Widget.AutoDroid.HomeTileIcon" parent="">
+        <item name="android:layout_width">42dp</item>
+        <item name="android:layout_height">42dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@android:color/white</item>
+    </style>
+    <style name="Widget.AutoDroid.HomeTileLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:maxWidth">112dp</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">14sp</item>
     </style>
 </resources>

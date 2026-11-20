@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF152229"
+    android:background="@color/md_background"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/editor_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#FF152229"
+        android:background="@color/md_primary_bar"
         app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel"
         app:title="Edit Macro"
         app:titleTextColor="@android:color/white" />
@@ -37,7 +37,7 @@
                 android:hint="Macro name"
                 android:padding="16dp"
                 android:textColor="@android:color/white"
-                android:textColorHint="#FF9AA6AC"
+                android:textColorHint="@color/md_text_secondary"
                 android:textSize="18sp" />
 
             <LinearLayout
@@ -72,7 +72,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                android:textColorHint="@color/md_text_secondary" />
 
                 <EditText
                     android:id="@+id/input_trigger_sender"
@@ -81,7 +81,7 @@
                     android:layout_marginTop="8dp"
                     android:hint="短信发送方，可留空"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                    android:textColorHint="@color/md_text_secondary" />
             </LinearLayout>
 
             <LinearLayout
@@ -123,7 +123,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                android:textColorHint="@color/md_text_secondary" />
 
                 <EditText
                     android:id="@+id/input_action_extra"
@@ -131,7 +131,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                android:textColorHint="@color/md_text_secondary" />
 
                 <EditText
                     android:id="@+id/input_action_port"
@@ -141,7 +141,7 @@
                     android:hint="数据短信目标端口"
                     android:inputType="number"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                android:textColorHint="@color/md_text_secondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_add_action"
@@ -149,7 +149,7 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="10dp"
                     android:text="Add Action"
-                    app:backgroundTint="#FF1F5F74" />
+                    app:backgroundTint="#FF2F6FA5" />
             </LinearLayout>
 
             <LinearLayout
@@ -191,7 +191,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                    android:textColorHint="@color/md_text_secondary" />
 
                 <EditText
                     android:id="@+id/input_constraint_extra"
@@ -199,7 +199,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
-                    android:textColorHint="#FF9AA6AC" />
+                android:textColorHint="@color/md_text_secondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_add_constraint"
@@ -207,7 +207,7 @@
                     android:layout_height="48dp"
                     android:layout_marginTop="10dp"
                     android:text="Add Constraint"
-                    app:backgroundTint="#FF3A5A33" />
+                    app:backgroundTint="#FF3E8A4D" />
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
@@ -224,7 +224,7 @@
                 android:layout_height="52dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/form_save"
-                app:backgroundTint="#FF00BCD4" />
+                app:backgroundTint="@color/md_tile_add_macro" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

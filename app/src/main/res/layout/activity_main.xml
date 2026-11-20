@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF152229"
+    android:background="@color/md_background"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#FF152229"
+        android:background="@color/md_primary_bar"
         app:titleTextColor="@android:color/white" />
 
     <FrameLayout
@@ -22,78 +22,237 @@
             android:id="@+id/home_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true">
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:paddingBottom="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp">
+                android:orientation="vertical">
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="10dp">
+
+                    <LinearLayout
+                        android:id="@+id/tile_macros"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_macros">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_macros" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_macros" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_add_macro"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_add_macro">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_add" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_add_macro" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_action_blocks"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_action_blocks">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_blocks" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_action_blocks" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_stopwatches"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_stopwatches">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_timer" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_stopwatches" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_system_log"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_system_log">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_log" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_system_log" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_videos"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_videos">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_video" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_videos" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_last_macro"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_last_macro">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_last" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_last_macro" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_favourites"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_favourites">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_favourite" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_favourites" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_geofences"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_geofences">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_geofence" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_geofences" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_cell_towers"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_cell_towers">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_tower" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_cell_towers" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_plugins"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_plugins">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_plugin" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_plugins" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tile_quick_run"
+                        style="@style/Widget.AutoDroid.HomeTile"
+                        android:layout_width="0dp"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="6dp"
+                        android:background="@drawable/tile_quick_run">
+
+                        <ImageView
+                            style="@style/Widget.AutoDroid.HomeTileIcon"
+                            android:src="@drawable/ic_tile_run" />
+
+                        <TextView
+                            style="@style/Widget.AutoDroid.HomeTileLabel"
+                            android:text="@string/tile_quick_run" />
+                    </LinearLayout>
+                </GridLayout>
 
                 <TextView
-                    android:id="@+id/home_greeting"
+                    android:id="@+id/macros_count"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/home_date"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="#FF9AA6AC"
-                    android:textSize="12sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="@drawable/macro_card_bg"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/home_quick_actions"
-                        android:textColor="@android:color/white"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <ListView
-                        android:id="@+id/home_actions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:divider="@null" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="@string/home_automations"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <ListView
-                    android:id="@+id/home_macros"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:divider="@null" />
-
-                <TextView
-                    android:id="@+id/home_macros_empty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/rules_empty"
-                    android:textColor="#FF9AA6AC"
-                    android:textSize="14sp" />
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:paddingTop="16dp"
+                    android:textColor="@color/md_text_secondary"
+                    android:textSize="16sp" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
@@ -104,30 +263,38 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <androidx.appcompat.widget.AppCompatCheckedTextView
-                android:id="@+id/filter_all"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:checked="true"
-                android:text="@string/filter_all" />
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="8dp">
 
-            <androidx.appcompat.widget.AppCompatCheckedTextView
-                android:id="@+id/filter_enabled"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/filter_enabled" />
+                <androidx.appcompat.widget.AppCompatCheckedTextView
+                    android:id="@+id/filter_all"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/filter_all" />
 
-            <androidx.appcompat.widget.AppCompatCheckedTextView
-                android:id="@+id/filter_disabled"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/filter_disabled" />
+                <androidx.appcompat.widget.AppCompatCheckedTextView
+                    android:id="@+id/filter_enabled"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/filter_enabled" />
+
+                <androidx.appcompat.widget.AppCompatCheckedTextView
+                    android:id="@+id/filter_disabled"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/filter_disabled" />
+            </LinearLayout>
 
             <ListView
                 android:id="@+id/list_rules"
@@ -136,7 +303,9 @@
                 android:layout_weight="1"
                 android:clipToPadding="false"
                 android:divider="@null"
-                android:paddingBottom="80dp" />
+                android:paddingBottom="80dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp" />
 
             <TextView
                 android:id="@+id/rules_empty"
@@ -145,7 +314,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/rules_empty"
-                android:textColor="#FF9AA6AC" />
+                android:textColor="@color/md_text_secondary" />
         </LinearLayout>
 
         <LinearLayout
@@ -160,8 +329,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="模板库正在接入\n当前可先从 Macros 页新建宏"
-                android:textColor="#FF9AA6AC"
+                android:text="@string/rules_empty"
+                android:textColor="@color/md_text_secondary"
                 android:textSize="16sp" />
         </LinearLayout>
 
@@ -174,19 +343,11 @@
             android:visibility="gone">
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_title"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
                 android:id="@+id/settings_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:textColor="#FF9AA6AC" />
+                android:textColor="@color/md_text_secondary"
+                android:textSize="16sp" />
         </LinearLayout>
     </FrameLayout>
 
@@ -195,16 +356,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_margin="18dp"
         android:contentDescription="@string/action_add"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="#FF00BCD4" />
+        android:src="@drawable/ic_tile_add"
+        app:backgroundTint="@color/md_tile_add_macro"
+        app:tint="@android:color/white" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="#FF182B33"
+        android:layout_height="66dp"
+        android:background="@color/md_primary_bar"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
         app:labelVisibilityMode="labeled"

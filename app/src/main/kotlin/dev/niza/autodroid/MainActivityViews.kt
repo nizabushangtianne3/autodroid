@@ -1,119 +1,105 @@
 package dev.niza.autodroid
 
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
+import androidx.appcompat.widget.AppCompatCheckedTextView
+import androidx.appcompat.widget.SwitchCompat
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.tabs.TabLayout
 import dev.niza.autodroid.engine.LinkOpenedTrigger
 import dev.niza.autodroid.engine.NotifyAction
 import dev.niza.autodroid.engine.Rule
-import dev.niza.autodroid.engine.summary
-import dev.niza.autodroid.engine.value
 import dev.niza.autodroid.ui.RuleEditor
-import dev.niza.autodroid.ui.RuleEditorLogic
 
 fun MainActivity.setupViews() {
-    listView = findViewById(R.id.list_rules)
-    val logView = findViewById<ListView>(R.id.list_logs)
-    val fab = findViewById<FloatingActionButton>(R.id.fab_add)
-    val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-    toolbar.subtitle = getString(R.string.toolbar_subtitle)
-    setupFilterSpinners()
-    setupLogTab(logView)
-    setupImportExportMenu(listView)
+    val macroList = findViewById<ListView>(R.id.list_rules)
+    val homeMacroList = findViewById<ListView>(R.id.home_macros)
+    val homeActionList = findViewById<ListView>(R.id.home_actions)
+    listView = macroList
+    setupHomeState()
+    setupNavigation()
+    setupMacroFilters(macroList)
+    setupImportExportMenu(macroList)
     render(listView)
 
-    fab.setOnClickListener { createRule(listView) }
-    listView.setOnItemClickListener { _, _, position, _ ->
-        RuleEditor(this).editRule(visibleRules()[position], listView)
+    findViewById<FloatingActionButton>(R.id.fab_add).setOnClickListener {
+        createRule(macroList)
     }
-    listView.setOnItemLongClickListener { _, _, position, _ ->
+
+    macroList.setOnItemClickListener { _, _, position, _ ->
+        RuleEditor(this).editRule(visibleRules()[position], macroList)
+    }
+    macroList.setOnItemLongClickListener { _, _, position, _ ->
         Runtime.engine.remove(visibleRules()[position].id)
-        Runtime.saveRules(this)
-        DataSmsRegistrar.refresh(this)
-        ScheduleRegistrar.refresh(this)
-        render(listView)
+        saveAndRefresh(macroList)
         Toast.makeText(this, R.string.delete_confirm, Toast.LENGTH_SHORT).show()
+        true
+    }
+    homeMacroList.setOnItemClickListener { _, _, position, _ ->
+        RuleEditor(this).editRule(Runtime.engine.rules()[position], macroList)
+    }
+    homeActionList.adapter = HomeActionAdapter()
+    homeActionList.setOnItemClickListener { _, _, position, _ ->
+        if (position == 0) showLogDialog() else exportRules.launch("autodroid-rules.json")
+    }
+}
+
+private fun MainActivity.setupHomeState() {
+    val calendar = java.util.Calendar.getInstance()
+    val greeting =
+        when (calendar.get(java.util.Calendar.HOUR_OF_DAY)) {
+            in 12..17 -> "Good afternoon 👋"
+            in 18..23 -> "Good evening 👋"
+            else -> "Good morning 👋"
+        }
+    findViewById<TextView>(R.id.home_greeting).text = greeting
+    findViewById<TextView>(R.id.home_date).text =
+        java.text.SimpleDateFormat("EEEE · MMM d", java.util.Locale.getDefault()).format(calendar.time)
+}
+
+private fun MainActivity.setupNavigation() {
+    val navigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+    navigation.selectedItemId = R.id.nav_home
+    navigation.setOnItemSelectedListener { item ->
+        when (item.itemId) {
+            R.id.nav_home -> showPage(R.id.home_page, getString(R.string.nav_home))
+            R.id.nav_macros -> showPage(R.id.macros_page, getString(R.string.rules_title))
+            R.id.nav_templates -> showPage(R.id.templates_page, getString(R.string.nav_templates))
+            else -> showPage(R.id.settings_page, getString(R.string.nav_settings))
+        }
         true
     }
 }
 
-private fun MainActivity.setupFilterSpinners() {
-    val triggerSpinner = findViewById<android.widget.Spinner>(R.id.spinner_trigger_filter)
-    val actionSpinner = findViewById<android.widget.Spinner>(R.id.spinner_action_filter)
-    triggerSpinner.adapter =
-        ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf(
-                "全部触发器", "打开链接", "应用启动", "数据短信", "定时器", "屏幕开关", "电量", "飞行模式", "蓝牙", "充电",
-                "耳机", "热点", "静音", "WiFi", "WiFi名称", "信号", "底座", "VPN", "GPS", "解锁", "剪贴板",
-                "深色模式", "媒体按键", "通知",
-            ),
-        )
-    actionSpinner.adapter =
-        ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("全部动作", "显示通知", "打开网址", "发送数据短信"),
-        )
-    triggerSpinner.onItemSelectedListener =
-        simpleSpinnerListener {
-            triggerFilter = it
-            render(listView)
-        }
-    actionSpinner.onItemSelectedListener =
-        simpleSpinnerListener {
-            actionFilter = it
-            render(listView)
-        }
+private fun MainActivity.showPage(
+    pageId: Int,
+    title: String,
+) {
+    listOf(R.id.home_page, R.id.macros_page, R.id.templates_page, R.id.settings_page).forEach {
+        findViewById<View>(it).visibility = if (it == pageId) View.VISIBLE else View.GONE
+    }
+    findViewById<MaterialToolbar>(R.id.toolbar).title = title
+    findViewById<FloatingActionButton>(R.id.fab_add).visibility =
+        if (pageId == R.id.macros_page) View.VISIBLE else View.GONE
+    if (pageId == R.id.settings_page) renderSettings()
 }
 
-private fun MainActivity.simpleSpinnerListener(onSelect: (Int) -> Unit) =
-    object : android.widget.AdapterView.OnItemSelectedListener {
-        override fun onItemSelected(
-            parent: android.widget.AdapterView<*>?,
-            view: View?,
-            position: Int,
-            id: Long,
-        ) {
-            onSelect(position)
-        }
-
-        override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-    }
-
-private fun MainActivity.setupLogTab(logView: ListView) {
-    val tabs = findViewById<TabLayout>(R.id.tab_layout)
-    val fab = findViewById<FloatingActionButton>(R.id.fab_add)
-    tabs.addTab(tabs.newTab().setText(R.string.tab_rules))
-    tabs.addTab(tabs.newTab().setText(R.string.tab_logs))
-    tabs.addOnTabSelectedListener(
-        object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                val showRules = tab.position == 0
-                findViewById<View>(R.id.rules_page).visibility = if (showRules) View.VISIBLE else View.GONE
-                findViewById<View>(R.id.logs_page).visibility = if (showRules) View.GONE else View.VISIBLE
-                fab.visibility = if (showRules) View.VISIBLE else View.GONE
-                if (!showRules) renderLog(logView)
+private fun MainActivity.setupMacroFilters(listView: ListView) {
+    val filters = listOf(R.id.filter_all, R.id.filter_enabled, R.id.filter_disabled)
+    filters.forEachIndexed { index, id ->
+        findViewById<AppCompatCheckedTextView>(id).setOnClickListener {
+            filters.forEachIndexed { filterIndex, filterId ->
+                findViewById<AppCompatCheckedTextView>(filterId).isChecked = filterIndex == index
             }
-
-            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
-
-            override fun onTabReselected(tab: TabLayout.Tab) = Unit
-        },
-    )
-    logView.setOnItemClickListener { _, _, position, _ ->
-        val entry = Runtime.engine.executionLog().reversed().getOrNull(position) ?: return@setOnItemClickListener
-        showLogDetail(entry)
+            render(listView)
+        }
     }
 }
 
@@ -122,12 +108,12 @@ private fun MainActivity.setupImportExportMenu(listView: ListView) {
     toolbar.inflateMenu(R.menu.menu_main)
     toolbar.setOnMenuItemClickListener { item ->
         when (item.itemId) {
-            R.id.menu_export -> {
-                exportRules()
+            R.id.menu_import -> {
+                importRules.launch(arrayOf("application/json"))
                 true
             }
-            R.id.menu_import -> {
-                importRules(listView)
+            R.id.menu_export -> {
+                exportRules.launch("autodroid-rules.json")
                 true
             }
             else -> false
@@ -141,77 +127,76 @@ private fun MainActivity.createRule(listView: ListView) {
     val rule =
         Rule(
             id = "sample-$sequence",
-            name = "规则 $sequence",
+            name = "Macro $sequence",
             trigger = LinkOpenedTrigger("trigger-$sequence", host = ""),
-            actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "触发成功")),
+            actions = listOf(NotifyAction("action-$sequence", "AutoDroid", "Triggered")),
         )
     RuleEditor(this).editRule(rule, listView)
 }
 
 fun MainActivity.render(listView: ListView) {
     val rules = visibleRules()
-    listView.adapter = RuleAdapter(rules)
+    listView.adapter = MacroAdapter(rules)
+    findViewById<ListView>(R.id.home_macros).adapter = MacroAdapter(Runtime.engine.rules())
     findViewById<View>(R.id.rules_empty).visibility = if (rules.isEmpty()) View.VISIBLE else View.GONE
+    findViewById<View>(R.id.home_macros_empty).visibility =
+        if (Runtime.engine.rules().isEmpty()) View.VISIBLE else View.GONE
     listView.visibility = if (rules.isEmpty()) View.GONE else View.VISIBLE
+}
+
+private fun MainActivity.saveAndRefresh(listView: ListView) {
+    Runtime.saveRules(this)
+    DataSmsRegistrar.refresh(this)
+    ScheduleRegistrar.refresh(this)
+    render(listView)
 }
 
 fun MainActivity.visibleRules(): List<Rule> =
     Runtime.engine.rules().filter { rule ->
-        RuleEditorLogic.ruleMatchesTriggerFilter(rule.trigger, triggerFilter) &&
-            RuleEditorLogic.ruleMatchesActionFilter(rule.actions.firstOrNull(), actionFilter)
+        when {
+            findViewById<AppCompatCheckedTextView>(R.id.filter_enabled).isChecked -> rule.enabled
+            findViewById<AppCompatCheckedTextView>(R.id.filter_disabled).isChecked -> !rule.enabled
+            else -> true
+        }
     }
 
-private fun MainActivity.renderLog(logView: ListView) {
+private fun MainActivity.showLogDialog() {
     val entries = Runtime.engine.executionLog().reversed()
-    logView.adapter =
-        ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            entries.map { entry ->
-                val format = java.text.SimpleDateFormat("MM-dd HH:mm:ss", java.util.Locale.getDefault())
-                val time = format.format(java.util.Date(entry.timestamp))
-                val status = if (entry.report.success) "成功" else "失败"
-                "$time • $status • 匹配 ${entry.report.matchedRuleCount} 个宏 • 执行 ${entry.report.actionResults.size} 个动作"
-            },
-        )
-    findViewById<View>(R.id.logs_empty).visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
-    logView.visibility = if (entries.isEmpty()) View.GONE else View.VISIBLE
-}
-
-private fun MainActivity.showLogDetail(entry: dev.niza.autodroid.engine.ExecutionLogEntry) {
-    val format = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-    val time = format.format(java.util.Date(entry.timestamp))
-    val details =
-        buildString {
-            append("匹配宏：${entry.report.matchedRuleCount}")
-            append('\n')
-            append("执行结果：${if (entry.report.success) "成功" else "失败"}")
-            entry.report.actionResults.forEach { result ->
-                append('\n')
-                append("${result.actionId}：${if (result.success) "成功" else "失败"}")
-                result.message?.let { append(" • $it") }
+    val format = java.text.SimpleDateFormat("MM-dd HH:mm:ss", java.util.Locale.getDefault())
+    val text =
+        if (entries.isEmpty()) {
+            getString(R.string.logs_empty)
+        } else {
+            entries.joinToString("\n") { entry ->
+                "${format.format(java.util.Date(entry.timestamp))} • ${if (entry.report.success) "成功" else "失败"}"
             }
         }
-    AlertDialog
-        .Builder(this)
-        .setTitle(time)
-        .setMessage(details)
-        .setPositiveButton("关闭", null)
-        .show()
+    AlertDialog.Builder(this).setTitle(R.string.logs_title).setMessage(text).setPositiveButton("关闭", null).show()
 }
 
-private fun MainActivity.exportRules() {
-    exportRules.launch("autodroid-rules.json")
+private fun MainActivity.renderSettings() {
+    val rules = Runtime.engine.rules()
+    val triggerTypes =
+        rules
+            .map { dev.niza.autodroid.ui.RuleEditorLogic.triggerLabel(it.trigger) }
+            .distinct()
+            .size
+    findViewById<TextView>(R.id.settings_status).text =
+        "宏 ${rules.size} 个\n启用 ${rules.count { it.enabled }} 个\n触发器类型 $triggerTypes 种"
 }
 
-private fun MainActivity.importRules(listView: ListView) {
-    importRules.launch(arrayOf("application/json"))
-}
+private class HomeActionAdapter : android.widget.ArrayAdapter<String>(
+    AutoDroidApplication.context(),
+    android.R.layout.simple_list_item_1,
+    listOf("打开通知记录", "打开导入 / 导出"),
+)
 
-private class RuleAdapter(
+private class MacroAdapter(
     private val rules: List<Rule>,
 ) : BaseAdapter() {
-    override fun getCount() = rules.size
+    private val states = rules.map { it.toUiState() }
+
+    override fun getCount() = states.size
 
     override fun getItem(position: Int) = rules[position]
 
@@ -222,24 +207,32 @@ private class RuleAdapter(
         convertView: View?,
         parent: ViewGroup,
     ): View {
-        val context = parent.context
-        val row =
-            convertView ?: android.view.LayoutInflater.from(context).inflate(R.layout.item_macro, parent, false)
-        val rule = getItem(position)
-        val trigger = RuleEditorLogic.triggerLabel(rule.trigger)
-        val action = RuleEditorLogic.actionLabel(rule.actions.firstOrNull())
-        val triggerValue = rule.trigger.value.orEmpty()
-        val actionValue = rule.actions.firstOrNull()?.summary.orEmpty()
-        row.findViewById<TextView>(R.id.macro_name).text = rule.name
-        row.findViewById<TextView>(R.id.trigger_type).text = "触发器"
-        row.findViewById<TextView>(R.id.trigger_value).text = "$trigger\n$triggerValue"
-        row.findViewById<TextView>(R.id.action_type).text = "动作"
-        row.findViewById<TextView>(R.id.action_value).text = "$action\n$actionValue"
-        row.findViewById<TextView>(R.id.constraint_count).text = "约束 ${rule.constraints.size} 项"
-        row.findViewById<TextView>(R.id.macro_status).text = if (rule.enabled) "已启用" else "已停用"
-        row.findViewById<TextView>(R.id.macro_status).setTextColor(
-            ContextCompat.getColor(context, if (rule.enabled) R.color.md_enabled_green else R.color.md_disabled_gray),
-        )
-        return row
+        val holder =
+            (convertView?.tag as? Holder)
+                ?: Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_macro, parent, false))
+        val state = states[position]
+        holder.name.text = state.name
+        holder.lastRun.text = state.lastRun
+        holder.trigger.text = state.triggerLabel
+        holder.action.text = state.actionLabel
+        holder.constraint.text = state.constraintLabel
+        holder.switch.setOnCheckedChangeListener(null)
+        holder.switch.isChecked = state.enabled
+        holder.switch.setOnCheckedChangeListener { _, checked ->
+            Runtime.engine.replace(getItem(position).copy(enabled = checked))
+            Runtime.saveRules(parent.context.applicationContext)
+            DataSmsRegistrar.refresh(parent.context.applicationContext)
+            ScheduleRegistrar.refresh(parent.context.applicationContext)
+        }
+        return holder.row
+    }
+
+    private class Holder(val row: View) {
+        val name = row.findViewById<TextView>(R.id.macro_name)
+        val lastRun = row.findViewById<TextView>(R.id.macro_last_run)
+        val trigger = row.findViewById<TextView>(R.id.trigger_value)
+        val action = row.findViewById<TextView>(R.id.action_value)
+        val constraint = row.findViewById<TextView>(R.id.constraint_count)
+        val switch = row.findViewById<SwitchCompat>(R.id.macro_switch)
     }
 }

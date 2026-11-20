@@ -1,5 +1,10 @@
 <resources>
-    <style name="Theme.AutoDroid" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.AutoDroid" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">#FF00BCD4</item>
+        <item name="android:statusBarColor">#FF152229</item>
+        <item name="android:navigationBarColor">#FF182B33</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
     <style name="Theme.AutoDroid.Transparent">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

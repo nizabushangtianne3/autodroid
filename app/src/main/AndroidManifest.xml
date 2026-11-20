@@ -12,6 +12,7 @@
         android:allowBackup="false"
         android:icon="@android:drawable/ic_menu_manage"
         android:label="@string/app_name"
+        android:name=".AutoDroidApplication"
         android:theme="@style/Theme.AutoDroid">
 
         <activity

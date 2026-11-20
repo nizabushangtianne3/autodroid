@@ -71,6 +71,8 @@ class MainActivity : AppCompatActivity() {
             RuleEditor(this).editRule(visibleRules()[position], listView)
         }
 
+        listView.setOnItemLongClickListener { _, _, _, _ -> false }
+
         listView.setOnItemLongClickListener { _, _, position, _ ->
             Runtime.engine.remove(visibleRules()[position].id)
             Runtime.saveRules(this)
@@ -80,6 +82,53 @@ class MainActivity : AppCompatActivity() {
         }
 
         showImportExportMenu(listView)
+
+        showLogToggle(listView)
+    }
+
+    private var logVisible = false
+    private lateinit var rulesListView: ListView
+    private lateinit var logListView: ListView
+
+    private fun showLogToggle(rulesList: ListView) {
+        rulesListView = rulesList
+        logListView = ListView(this)
+        val container = rulesList.parent as LinearLayout
+        val logButton =
+            com.google.android.material.floatingactionbutton.FloatingActionButton(this).apply {
+                setImageResource(android.R.drawable.ic_menu_recent_history)
+                setOnClickListener { toggleLog() }
+            }
+        container.addView(logButton)
+        logListView.visibility = android.view.View.GONE
+        container.addView(logListView, 1)
+    }
+
+    private fun toggleLog() {
+        logVisible = !logVisible
+        if (logVisible) {
+            renderLog(logListView)
+            rulesListView.visibility = android.view.View.GONE
+            logListView.visibility = android.view.View.VISIBLE
+        } else {
+            rulesListView.visibility = android.view.View.VISIBLE
+            logListView.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun renderLog(logView: ListView) {
+        val entries = Runtime.engine.executionLog().reversed()
+        logView.adapter =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_list_item_1,
+                entries.map { entry ->
+                    val format = java.text.SimpleDateFormat("MM-dd HH:mm:ss", java.util.Locale.getDefault())
+                    val time = format.format(java.util.Date(entry.timestamp))
+                    val status = if (entry.report.success) "OK" else "FAILED"
+                    "$time • $status • ${entry.report.matchedRuleCount} rules • ${entry.report.actionResults.size} actions"
+                },
+            )
     }
 
     private fun visibleRules(): List<Rule> =

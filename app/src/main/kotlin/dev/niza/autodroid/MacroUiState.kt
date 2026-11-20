@@ -20,10 +20,10 @@ fun Rule.toUiState() =
         id = id,
         name = name,
         enabled = enabled,
-        lastRun = "Never ran · ${if (enabled) "enabled" else "disabled"}",
+        lastRun = if (enabled) "已启用" else "已禁用",
         triggerLabel = RuleEditorLogic.triggerLabel(trigger) + (trigger.value?.let { " · $it" } ?: ""),
         actionLabel =
             RuleEditorLogic.actionLabel(actions.firstOrNull()) +
                 (actions.firstOrNull()?.summary?.let { " · $it" } ?: ""),
-        constraintLabel = if (constraints.isEmpty()) "No constraints" else "Constraints · ${constraints.size}",
+        constraintLabel = if (constraints.isEmpty()) "无约束" else "约束 · ${constraints.size}",
     )

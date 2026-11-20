@@ -13,7 +13,9 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.niza.autodroid.engine.ActionResult
 import dev.niza.autodroid.engine.AutomationEngine
+import dev.niza.autodroid.engine.ClipboardAction
 import dev.niza.autodroid.engine.NotifyAction
+import dev.niza.autodroid.engine.LaunchAppAction
 import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.RuleStore
 import dev.niza.autodroid.engine.SendDataSmsAction
@@ -118,6 +120,8 @@ object Runtime {
             is NotifyAction -> notify(action)
             is OpenUrlAction -> open(action)
             is SendDataSmsAction -> sendDataSms(action)
+            is LaunchAppAction -> launchApp(action)
+            is ClipboardAction -> copyToClipboard(action)
             else -> "accepted"
         }
     }
@@ -176,6 +180,23 @@ object Runtime {
             SmsManager.getDefault().sendDataMessage(action.sender, null, action.destinationPort.toShort(), action.payload, null, null)
         }
         return "sent"
+    }
+
+    private fun launchApp(action: LaunchAppAction): String {
+        val appContext = appContext ?: throw IllegalStateException("Application context unavailable")
+        val intent = appContext.packageManager.getLaunchIntentForPackage(action.packageName)
+            ?: throw IllegalStateException("No launchable activity for ${action.packageName}")
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        appContext.startActivity(intent)
+        return "requested"
+    }
+
+    private fun copyToClipboard(action: ClipboardAction): String {
+        val appContext = appContext ?: throw IllegalStateException("Application context unavailable")
+        val manager = appContext.getSystemService(Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+            ?: throw IllegalStateException("ClipboardManager unavailable")
+        manager.setPrimaryClip(android.content.ClipData.newPlainText(action.id, action.text))
+        return "copied"
     }
 
     private var appContext: Context? = null

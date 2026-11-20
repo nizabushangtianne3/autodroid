@@ -73,4 +73,33 @@ class RuleEditorLogicTest {
         assertEquals(false, RuleEditorLogic.ruleMatchesTriggerFilter(schedule, 1))
         assertEquals(false, RuleEditorLogic.ruleMatchesTriggerFilter(link, 3))
     }
+
+    @Test
+    fun `new triggers and actions are editable and labeled`() {
+        assertEquals("installed / removed", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_APP_LIFECYCLE))
+        assertEquals("省电模式开启 true / false", RuleEditorLogic.triggerHint(RuleEditorLogic.TYPE_POWER_SAVE_MODE))
+
+        val lifecycleTrigger =
+            RuleEditorLogic.buildTrigger("t1", RuleEditorLogic.TYPE_APP_LIFECYCLE, "installed", null)
+        val powerSaveTrigger =
+            RuleEditorLogic.buildTrigger("t2", RuleEditorLogic.TYPE_POWER_SAVE_MODE, "false", null)
+
+        assertEquals(RuleEditorLogic.TYPE_APP_LIFECYCLE, RuleEditorLogic.typePosition(lifecycleTrigger))
+        assertEquals(RuleEditorLogic.TYPE_POWER_SAVE_MODE, RuleEditorLogic.typePosition(powerSaveTrigger))
+        assertEquals("应用安装", RuleEditorLogic.triggerLabel(lifecycleTrigger))
+        assertEquals("省电模式", RuleEditorLogic.triggerLabel(powerSaveTrigger))
+
+        val launchApp =
+            dev.niza.autodroid.engine.LaunchAppAction("a1", "com.example.app")
+        val clipboard = dev.niza.autodroid.engine.ClipboardAction("a2", "hello")
+
+        assertEquals(RuleEditorLogic.ACTION_LAUNCH_APP, RuleEditorLogic.actionTypePosition(launchApp))
+        assertEquals(RuleEditorLogic.ACTION_CLIPBOARD, RuleEditorLogic.actionTypePosition(clipboard))
+        assertEquals("com.example.app", RuleEditorLogic.actionValue(launchApp))
+        assertEquals("hello", RuleEditorLogic.actionValue(clipboard))
+        assertEquals("启动应用", RuleEditorLogic.actionLabel(launchApp))
+        assertEquals("复制到剪贴板", RuleEditorLogic.actionLabel(clipboard))
+        assertNull(RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_LAUNCH_APP, "com.example.app", "", ""))
+        assertNull(RuleEditorLogic.validateAction(RuleEditorLogic.ACTION_CLIPBOARD, "hello", "", ""))
+    }
 }

@@ -270,6 +270,34 @@ data class NotificationEvent(
     }
 }
 
+data class AppLifecycleEvent(
+    val packageName: String,
+    val added: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.AppLifecycleTrigger) return false
+        if (trigger.added != added) return false
+        return added
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("app_lifecycle_package", packageName)
+        engine.setVariable("app_lifecycle_added", added.toString())
+    }
+}
+
+data class PowerSaveModeEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.PowerSaveModeTrigger && trigger.enabled == enabled
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("power_save_mode", enabled.toString())
+    }
+}
+
 class AutomationEngine(
     private val executor: ActionExecutor,
     @Volatile var deviceState: DeviceState? = null,

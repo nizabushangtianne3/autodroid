@@ -25,6 +25,8 @@ object RuleEditorLogic {
     const val TYPE_DARK_THEME = 20
     const val TYPE_MEDIA_BUTTON = 21
     const val TYPE_NOTIFICATION = 22
+    const val TYPE_APP_LIFECYCLE = 23
+    const val TYPE_POWER_SAVE_MODE = 24
 
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
@@ -36,6 +38,8 @@ object RuleEditorLogic {
     const val ACTION_WAIT = 7
     const val ACTION_REPEAT_START = 8
     const val ACTION_REPEAT_END = 9
+    const val ACTION_LAUNCH_APP = 10
+    const val ACTION_CLIPBOARD = 11
 
     fun triggerHint(typePosition: Int): String =
         when (typePosition) {
@@ -61,6 +65,8 @@ object RuleEditorLogic {
             TYPE_DARK_THEME -> "深色模式 true / false"
             TYPE_MEDIA_BUTTON -> "媒体按键名"
             TYPE_NOTIFICATION -> "应用包名，可留空"
+            TYPE_APP_LIFECYCLE -> "installed / removed"
+            TYPE_POWER_SAVE_MODE -> "省电模式开启 true / false"
             else -> "链接主机，例如 example.com"
         }
 
@@ -71,6 +77,7 @@ object RuleEditorLogic {
             "Headphones", "Hotspot", "Silent Mode", "WiFi Connection", "WiFi SSID",
             "Signal On / Off", "Dock", "VPN", "GPS Enabled", "Device Unlocked",
             "Clipboard Change", "Dark Theme", "Media Button", "Notification",
+            "App Install / Remove", "Battery Saver",
         )
 
     fun typePosition(trigger: dev.niza.autodroid.engine.Trigger): Int =
@@ -97,6 +104,8 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.DarkThemeTrigger -> TYPE_DARK_THEME
             is dev.niza.autodroid.engine.MediaButtonTrigger -> TYPE_MEDIA_BUTTON
             is dev.niza.autodroid.engine.NotificationTrigger -> TYPE_NOTIFICATION
+            is dev.niza.autodroid.engine.AppLifecycleTrigger -> TYPE_APP_LIFECYCLE
+            is dev.niza.autodroid.engine.PowerSaveModeTrigger -> TYPE_POWER_SAVE_MODE
             else -> TYPE_LINK
         }
 
@@ -104,6 +113,7 @@ object RuleEditorLogic {
         listOf(
             "Display Notification", "Open URL", "Send Data SMS", "Set Variable",
             "If", "Else", "End If", "Wait", "Repeat", "End Repeat",
+            "Launch App", "Copy To Clipboard",
         )
 
     fun actionTypePosition(action: dev.niza.autodroid.engine.Action?): Int =
@@ -117,6 +127,8 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.WaitAction -> ACTION_WAIT
             is dev.niza.autodroid.engine.RepeatStartAction -> ACTION_REPEAT_START
             is dev.niza.autodroid.engine.RepeatEndAction -> ACTION_REPEAT_END
+            is dev.niza.autodroid.engine.LaunchAppAction -> ACTION_LAUNCH_APP
+            is dev.niza.autodroid.engine.ClipboardAction -> ACTION_CLIPBOARD
             else -> ACTION_NOTIFY
         }
 
@@ -129,6 +141,8 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.IfConditionAction -> action.expression
             is dev.niza.autodroid.engine.WaitAction -> action.durationMillis.toString()
             is dev.niza.autodroid.engine.RepeatStartAction -> action.count.toString()
+            is dev.niza.autodroid.engine.LaunchAppAction -> action.packageName
+            is dev.niza.autodroid.engine.ClipboardAction -> action.text
             else -> ""
         }
 
@@ -186,6 +200,16 @@ object RuleEditorLogic {
             TYPE_MEDIA_BUTTON -> dev.niza.autodroid.engine.MediaButtonTrigger(triggerId, button = value)
             TYPE_NOTIFICATION ->
                 dev.niza.autodroid.engine.NotificationTrigger(triggerId, packageName = value.ifBlank { null })
+            TYPE_APP_LIFECYCLE ->
+                dev.niza.autodroid.engine.AppLifecycleTrigger(
+                    triggerId,
+                    added = value.equals("installed", ignoreCase = true),
+                )
+            TYPE_POWER_SAVE_MODE ->
+                dev.niza.autodroid.engine.PowerSaveModeTrigger(
+                    triggerId,
+                    enabled = value.toBooleanStrictOrNull() ?: false,
+                )
             else -> dev.niza.autodroid.engine.LinkOpenedTrigger(triggerId, host = value)
         }
 
@@ -200,6 +224,8 @@ object RuleEditorLogic {
             ACTION_WAIT -> "等待毫秒"
             ACTION_REPEAT_START -> "重复次数"
             ACTION_REPEAT_END -> "可留空"
+            ACTION_LAUNCH_APP -> "应用包名"
+            ACTION_CLIPBOARD -> "剪贴板内容"
             else -> "通知标题"
         }
 
@@ -214,6 +240,8 @@ object RuleEditorLogic {
             ACTION_WAIT -> "可留空"
             ACTION_REPEAT_START -> "可留空"
             ACTION_REPEAT_END -> "可留空"
+            ACTION_LAUNCH_APP -> "可留空"
+            ACTION_CLIPBOARD -> "可留空"
             else -> "通知内容"
         }
 
@@ -330,6 +358,8 @@ object RuleEditorLogic {
                 TYPE_DARK_THEME -> trigger is dev.niza.autodroid.engine.DarkThemeTrigger
                 TYPE_MEDIA_BUTTON -> trigger is dev.niza.autodroid.engine.MediaButtonTrigger
                 TYPE_NOTIFICATION -> trigger is dev.niza.autodroid.engine.NotificationTrigger
+                TYPE_APP_LIFECYCLE -> trigger is dev.niza.autodroid.engine.AppLifecycleTrigger
+                TYPE_POWER_SAVE_MODE -> trigger is dev.niza.autodroid.engine.PowerSaveModeTrigger
                 else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
             }
 
@@ -348,6 +378,8 @@ object RuleEditorLogic {
                 ACTION_WAIT -> action is dev.niza.autodroid.engine.WaitAction
                 ACTION_REPEAT_START -> action is dev.niza.autodroid.engine.RepeatStartAction
                 ACTION_REPEAT_END -> action is dev.niza.autodroid.engine.RepeatEndAction
+                ACTION_LAUNCH_APP -> action is dev.niza.autodroid.engine.LaunchAppAction
+                ACTION_CLIPBOARD -> action is dev.niza.autodroid.engine.ClipboardAction
                 else -> action is dev.niza.autodroid.engine.NotifyAction
             }
 
@@ -362,6 +394,8 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.WaitAction -> "等待"
             is dev.niza.autodroid.engine.RepeatStartAction -> "重复"
             is dev.niza.autodroid.engine.RepeatEndAction -> "结束重复"
+            is dev.niza.autodroid.engine.LaunchAppAction -> "启动应用"
+            is dev.niza.autodroid.engine.ClipboardAction -> "复制到剪贴板"
             else -> "显示通知"
         }
 
@@ -389,6 +423,9 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.DarkThemeTrigger -> "深色模式"
             is dev.niza.autodroid.engine.MediaButtonTrigger -> "媒体按键"
             is dev.niza.autodroid.engine.NotificationTrigger -> "通知"
+            is dev.niza.autodroid.engine.AppLifecycleTrigger ->
+                if (trigger.added) "应用安装" else "应用卸载"
+            is dev.niza.autodroid.engine.PowerSaveModeTrigger -> "省电模式"
             else -> "打开链接"
         }
 }

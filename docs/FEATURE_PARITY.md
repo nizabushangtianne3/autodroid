@@ -92,3 +92,6 @@ AutoDroid uses its own class names, package namespace (`dev.niza.autodroid`), UI
   beta build: Home, Macros, Templates and Settings navigation plus the core shortcut tile layout.
 - Tile colors are independent color constants selected to match the observed palette, not copied assets.
 - Macro cards retain Trigger / Actions / Constraints blocks with the red / blue / green hierarchy.
+- v0.1.13 adds MacroDroid-style macro list badges for Trigger / Action / Constraint and exposes
+  runtime Global Variables from the Macros toolbar. Opening or creating a macro records
+  `last_opened_macro`, matching the Home shortcut's data contract without copying upstream assets.

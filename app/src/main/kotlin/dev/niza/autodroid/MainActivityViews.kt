@@ -47,16 +47,16 @@ private fun MainActivity.setupHomeTiles(macroList: ListView) {
         mapOf(
             R.id.tile_macros to { showPage(R.id.macros_page, getString(R.string.rules_title)) },
             R.id.tile_add_macro to { createRule(macroList) },
-            R.id.tile_action_blocks to { showToast(getString(R.string.tile_action_blocks)) },
-            R.id.tile_stopwatches to { showToast(getString(R.string.tile_stopwatches)) },
+            R.id.tile_action_blocks to { showInfoDialog(getString(R.string.tile_action_blocks), getString(R.string.action_blocks_empty)) },
+            R.id.tile_stopwatches to { showInfoDialog(getString(R.string.tile_stopwatches), getString(R.string.stopwatches_empty)) },
             R.id.tile_system_log to { showLogDialog() },
-            R.id.tile_videos to { showToast(getString(R.string.tile_videos)) },
+            R.id.tile_videos to { showInfoDialog(getString(R.string.tile_videos), getString(R.string.videos_empty)) },
             R.id.tile_last_macro to { openLastRule(macroList) },
-            R.id.tile_favourites to { showToast(getString(R.string.tile_favourites)) },
-            R.id.tile_geofences to { showToast(getString(R.string.tile_geofences)) },
-            R.id.tile_cell_towers to { showToast(getString(R.string.tile_cell_towers)) },
-            R.id.tile_plugins to { showToast(getString(R.string.tile_plugins)) },
-            R.id.tile_quick_run to { showToast(getString(R.string.tile_quick_run)) },
+            R.id.tile_favourites to { showFavouriteMacros(macroList) },
+            R.id.tile_geofences to { showInfoDialog(getString(R.string.tile_geofences), getString(R.string.geofences_empty)) },
+            R.id.tile_cell_towers to { showInfoDialog(getString(R.string.tile_cell_towers), getString(R.string.cell_towers_empty)) },
+            R.id.tile_plugins to { showInfoDialog(getString(R.string.tile_plugins), getString(R.string.plugins_empty)) },
+            R.id.tile_quick_run to { quickRunMacro(macroList) },
         )
     tileActions.forEach { (tileId, action) ->
         findViewById<View>(tileId).setOnClickListener { action() }
@@ -65,6 +65,37 @@ private fun MainActivity.setupHomeTiles(macroList: ListView) {
 
 private fun MainActivity.showToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}
+
+private fun MainActivity.showInfoDialog(
+    title: String,
+    message: String,
+) {
+    AlertDialog.Builder(this).setTitle(title).setMessage(message).setPositiveButton(R.string.form_cancel, null).show()
+}
+
+private fun MainActivity.showFavouriteMacros(listView: ListView) {
+    val rules = Runtime.engine.rules()
+    if (rules.isEmpty()) {
+        showInfoDialog(getString(R.string.tile_favourites), getString(R.string.rules_empty))
+    } else {
+        val names = rules.map { it.name }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.tile_favourites))
+            .setItems(names) { _, which -> openEditor(rules[which].id) }
+            .setNegativeButton(R.string.form_cancel, null)
+            .show()
+    }
+}
+
+private fun MainActivity.quickRunMacro(listView: ListView) {
+    val rule = Runtime.engine.rules().firstOrNull { it.enabled }
+    if (rule == null) {
+        showInfoDialog(getString(R.string.tile_quick_run), getString(R.string.quick_run_empty))
+    } else {
+        Runtime.dispatchAndReport(dev.niza.autodroid.engine.ScheduleFiredEvent(rule.id))
+        Toast.makeText(this, rule.name, Toast.LENGTH_SHORT).show()
+    }
 }
 
 private fun MainActivity.openLastRule(macroList: ListView) {
@@ -101,14 +132,24 @@ private fun MainActivity.showPage(
     findViewById<FloatingActionButton>(R.id.fab_add).visibility =
         if (pageId == R.id.macros_page) View.VISIBLE else View.GONE
     if (pageId == R.id.settings_page) renderSettings()
+        if (pageId == R.id.templates_page) {
+            findViewById<TextView>(R.id.templates_empty).text = getString(R.string.templates_empty)
+        }
 }
 
 private fun MainActivity.setupMacroFilters(listView: ListView) {
-    val filters = listOf(R.id.filter_all, R.id.filter_enabled, R.id.filter_disabled)
-    filters.forEachIndexed { index, id ->
-        findViewById<AppCompatCheckedTextView>(id).setOnClickListener {
-            filters.forEachIndexed { filterIndex, filterId ->
-                findViewById<AppCompatCheckedTextView>(filterId).isChecked = filterIndex == index
+    val filters = listOf(
+        R.id.filter_favourites,
+        R.id.filter_all,
+        R.id.filter_enabled,
+        R.id.filter_disabled,
+        R.id.filter_errors,
+        R.id.filter_running,
+    )
+    filters.forEach { id ->
+        findViewById<AppCompatCheckedTextView>(id).setOnClickListener { selected ->
+            filters.forEach { filterId ->
+                findViewById<AppCompatCheckedTextView>(filterId).isChecked = filterId == selected.id
             }
             render(listView)
         }
@@ -128,6 +169,10 @@ private fun MainActivity.setupImportExportMenu(listView: ListView) {
                 exportRules.launch("autodroid-rules.json")
                 true
             }
+            R.id.menu_variables -> {
+                showVariablesDialog()
+                true
+            }
             else -> false
         }
     }
@@ -145,10 +190,14 @@ private fun MainActivity.createRule(listView: ListView) {
         )
     Runtime.engine.replace(rule)
     Runtime.saveRules(this)
+    Runtime.engine.setVariable("last_opened_macro", rule.name)
     openEditor(rule.id)
 }
 
 internal fun MainActivity.openEditor(ruleId: String) {
+    Runtime.engine.rules().firstOrNull { it.id == ruleId }?.let {
+        Runtime.engine.setVariable("last_opened_macro", it.name)
+    }
     startActivity(android.content.Intent(this, RuleEditorActivity::class.java).putExtra(RuleEditorActivity.EXTRA_RULE_ID, ruleId))
 }
 
@@ -157,6 +206,10 @@ fun MainActivity.render(listView: ListView) {
     listView.adapter = MacroAdapter(rules)
     findViewById<TextView>(R.id.macros_count).text =
         getString(R.string.macro_count, Runtime.engine.rules().size)
+    if (findViewById<View>(R.id.macros_page).visibility == View.VISIBLE) {
+        findViewById<MaterialToolbar>(R.id.toolbar).title =
+            getString(R.string.rules_title) + " " + Runtime.engine.rules().size
+    }
     findViewById<View>(R.id.rules_empty).visibility = if (rules.isEmpty()) View.VISIBLE else View.GONE
     listView.visibility = if (rules.isEmpty()) View.GONE else View.VISIBLE
 }
@@ -171,8 +224,11 @@ private fun MainActivity.saveAndRefresh(listView: ListView) {
 fun MainActivity.visibleRules(): List<Rule> =
     Runtime.engine.rules().filter { rule ->
         when {
+            findViewById<AppCompatCheckedTextView>(R.id.filter_favourites).isChecked -> true
             findViewById<AppCompatCheckedTextView>(R.id.filter_enabled).isChecked -> rule.enabled
             findViewById<AppCompatCheckedTextView>(R.id.filter_disabled).isChecked -> !rule.enabled
+            findViewById<AppCompatCheckedTextView>(R.id.filter_errors).isChecked -> false
+            findViewById<AppCompatCheckedTextView>(R.id.filter_running).isChecked -> false
             else -> true
         }
     }
@@ -189,6 +245,21 @@ private fun MainActivity.showLogDialog() {
             }
         }
     AlertDialog.Builder(this).setTitle(R.string.logs_title).setMessage(text).setPositiveButton("关闭", null).show()
+}
+
+private fun MainActivity.showVariablesDialog() {
+    val variables = Runtime.engine.variables()
+    val text =
+        if (variables.isEmpty()) {
+            getString(R.string.variables_empty)
+        } else {
+            variables.entries.joinToString("\n") { "${it.key} = ${it.value}" }
+        }
+    AlertDialog.Builder(this)
+        .setTitle(R.string.variables_title)
+        .setMessage(text)
+        .setPositiveButton(R.string.form_cancel, null)
+        .show()
 }
 
 private fun MainActivity.renderSettings() {
@@ -223,7 +294,9 @@ private class MacroAdapter(
                 ?: Holder(LayoutInflater.from(parent.context).inflate(R.layout.item_macro, parent, false))
         val state = states[position]
         holder.name.text = state.name
-        holder.lastRun.text = state.lastRun
+        val statusResource = if (state.enabled) R.string.macro_enabled else R.string.macro_disabled
+        holder.row.setBackgroundResource(R.drawable.macro_card_light_bg)
+        holder.lastRun.text = holder.row.context.getString(statusResource)
         holder.trigger.text = state.triggerLabel
         holder.action.text = state.actionLabel
         holder.constraint.text = state.constraintLabel

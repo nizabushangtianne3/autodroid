@@ -35,6 +35,8 @@ val Trigger.value: String?
             is DarkThemeTrigger -> if (enabled) "dark theme on" else "dark theme off"
             is MediaButtonTrigger -> "media button"
             is NotificationTrigger -> "notification received"
+            is AppLifecycleTrigger -> if (added) "app installed" else "app removed"
+            is PowerSaveModeTrigger -> if (enabled) "battery saver on" else "battery saver off"
         }
 
 val Action.summary: String
@@ -50,6 +52,8 @@ val Action.summary: String
             is WaitAction -> "wait ${durationMillis}ms"
             is RepeatStartAction -> "repeat ${count}x"
             is RepeatEndAction -> "end repeat"
+            is LaunchAppAction -> packageName
+            is ClipboardAction -> text
         }
 
 @Serializable
@@ -453,6 +457,20 @@ data class NotificationTrigger(
 ) : Trigger
 
 @Serializable
+@SerialName("app_lifecycle")
+data class AppLifecycleTrigger(
+    override val id: String,
+    val added: Boolean,
+) : Trigger
+
+@Serializable
+@SerialName("power_save_mode")
+data class PowerSaveModeTrigger(
+    override val id: String,
+    val enabled: Boolean,
+) : Trigger
+
+@Serializable
 sealed interface Action {
     val id: String
 }
@@ -531,6 +549,20 @@ data class RepeatStartAction(
 @SerialName("repeat_end")
 data class RepeatEndAction(
     override val id: String,
+) : Action
+
+@Serializable
+@SerialName("launch_app")
+data class LaunchAppAction(
+    override val id: String,
+    val packageName: String,
+) : Action
+
+@Serializable
+@SerialName("clipboard")
+data class ClipboardAction(
+    override val id: String,
+    val text: String,
 ) : Action
 
 @Serializable

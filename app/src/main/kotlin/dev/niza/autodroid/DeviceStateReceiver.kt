@@ -7,8 +7,10 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.core.content.ContextCompat
 import dev.niza.autodroid.engine.AirplaneModeEvent
+import dev.niza.autodroid.engine.AppLifecycleEvent
 import dev.niza.autodroid.engine.BatteryLevelEvent
 import dev.niza.autodroid.engine.BluetoothEvent
+import dev.niza.autodroid.engine.PowerSaveModeEvent
 import dev.niza.autodroid.engine.ScreenOnOffEvent
 
 object DeviceStateReceiver {
@@ -16,11 +18,14 @@ object DeviceStateReceiver {
     private const val ACTION_SCREEN_OFF = "android.intent.action.SCREEN_OFF"
     private const val ACTION_AIRPLANE_MODE = "android.intent.action.AIRPLANE_MODE"
     private const val ACTION_BLUETOOTH_STATE = "android.bluetooth.adapter.action.STATE_CHANGED"
+    private const val ACTION_POWER_SAVE_MODE = "android.os.action.POWER_SAVE_MODE_CHANGED"
 
     private var screenReceiver: BroadcastReceiver? = null
     private var batteryReceiver: BroadcastReceiver? = null
     private var airplaneReceiver: BroadcastReceiver? = null
     private var bluetoothReceiver: BroadcastReceiver? = null
+    private var packageReceiver: BroadcastReceiver? = null
+    private var powerSaveReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
 
     fun registeredChannelsForTest(): Set<String> =
@@ -29,6 +34,8 @@ object DeviceStateReceiver {
             if (batteryReceiver != null) add("battery")
             if (airplaneReceiver != null) add("airplane")
             if (bluetoothReceiver != null) add("bluetooth")
+            if (packageReceiver != null) add("package")
+            if (powerSaveReceiver != null) add("power_save")
         }
 
     fun resetForTest() {
@@ -36,6 +43,8 @@ object DeviceStateReceiver {
         batteryReceiver = null
         airplaneReceiver = null
         bluetoothReceiver = null
+        packageReceiver = null
+        powerSaveReceiver = null
         appContext = null
     }
 
@@ -50,11 +59,15 @@ object DeviceStateReceiver {
             }
         val needAirplane = rules.any { it.enabled && it.trigger is dev.niza.autodroid.engine.AirplaneModeTrigger }
         val needBluetooth = rules.any { it.enabled && it.trigger is dev.niza.autodroid.engine.BluetoothTrigger }
+        val needPackage = rules.any { it.enabled && it.trigger is dev.niza.autodroid.engine.AppLifecycleTrigger }
+        val needPowerSave = rules.any { it.enabled && it.trigger is dev.niza.autodroid.engine.PowerSaveModeTrigger }
 
         if (needScreen && screenReceiver == null) registerScreen(appContext)
         if (needBattery && batteryReceiver == null) registerBattery(appContext)
         if (needAirplane && airplaneReceiver == null) registerAirplane(appContext)
         if (needBluetooth && bluetoothReceiver == null) registerBluetooth(appContext)
+        if (needPackage && packageReceiver == null) registerPackageLifecycle(appContext)
+        if (needPowerSave && powerSaveReceiver == null) registerPowerSaveMode(appContext)
     }
 
     private fun readRules(context: Context) =
@@ -149,5 +162,54 @@ object DeviceStateReceiver {
             ContextCompat.RECEIVER_EXPORTED,
         )
         bluetoothReceiver = receiver
+    }
+
+    private fun registerPackageLifecycle(context: Context) {
+        val receiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context,
+                    intent: Intent,
+                ) {
+                    val packageName = intent.data?.schemeSpecificPart ?: return
+                    val replacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+                    if (replacing) return
+                    val added = intent.action == Intent.ACTION_PACKAGE_ADDED
+                    Runtime.initialize(context)
+                    Runtime.loadRules(context)
+                    Runtime.dispatchAndReport(AppLifecycleEvent(packageName, added))
+                }
+            }
+        val filter =
+            IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
+                addDataScheme("package")
+            }
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        packageReceiver = receiver
+    }
+
+    private fun registerPowerSaveMode(context: Context) {
+        val receiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(
+                    context: Context,
+                    intent: Intent,
+                ) {
+                    val powerManager = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+                        ?: return
+                    Runtime.initialize(context)
+                    Runtime.loadRules(context)
+                    Runtime.dispatchAndReport(PowerSaveModeEvent(powerManager.isPowerSaveMode))
+                }
+            }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            IntentFilter(ACTION_POWER_SAVE_MODE),
+            ContextCompat.RECEIVER_EXPORTED,
+        )
+        powerSaveReceiver = receiver
     }
 }

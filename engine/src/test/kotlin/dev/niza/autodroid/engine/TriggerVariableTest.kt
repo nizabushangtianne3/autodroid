@@ -81,4 +81,45 @@ class TriggerVariableTest {
         assertEquals(1, report.matchedRuleCount)
         assertTrue(report.success)
     }
+
+    @Test
+    fun `app lifecycle only matches install trigger and injects package`() {
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "app installed",
+                trigger = AppLifecycleTrigger("t1", added = true),
+                actions = listOf(NotifyAction("a1", title = "Installed", body = "New app")),
+            ),
+        )
+
+        val installReport = engine.dispatch(AppLifecycleEvent("com.example.app", added = true))
+        val removeReport = engine.dispatch(AppLifecycleEvent("com.example.app", added = false))
+
+        assertEquals(1, installReport.matchedRuleCount)
+        assertEquals(0, removeReport.matchedRuleCount)
+        assertEquals("com.example.app", engine.variable("app_lifecycle_package"))
+        assertEquals("true", engine.variable("app_lifecycle_added"))
+    }
+
+    @Test
+    fun `power save mode matches requested state and injects variable`() {
+        val engine = AutomationEngine(executor = { ActionResult(it.id, true) })
+        engine.register(
+            Rule(
+                id = "r1",
+                name = "battery saver on",
+                trigger = PowerSaveModeTrigger("t1", enabled = true),
+                actions = listOf(NotifyAction("a1", title = "Saver", body = "On")),
+            ),
+        )
+
+        val onReport = engine.dispatch(PowerSaveModeEvent(enabled = true))
+        val offReport = engine.dispatch(PowerSaveModeEvent(enabled = false))
+
+        assertEquals(1, onReport.matchedRuleCount)
+        assertEquals(0, offReport.matchedRuleCount)
+        assertEquals("true", engine.variable("power_save_mode"))
+    }
 }

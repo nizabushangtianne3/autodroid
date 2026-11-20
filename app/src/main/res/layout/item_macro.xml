@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="@android:color/white"
+        android:textColor="@color/md_list_text"
             android:textSize="17sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -37,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
-        android:textColor="@color/md_text_secondary"
+        android:textColor="@color/md_list_secondary"
         android:textSize="11sp" />
 
     <LinearLayout
@@ -52,12 +52,24 @@
         android:paddingStart="12dp"
         android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/trigger_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/trigger_badge"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/editor_section_trigger"
+                android:gravity="center"
+                android:text="@string/macro_trigger_prefix"
+                android:textColor="@color/md_list_text"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/trigger_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/md_list_text"
+                android:textSize="14sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -72,12 +84,24 @@
         android:paddingStart="12dp"
         android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/action_value"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/action_badge"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/editor_section_action"
+                android:gravity="center"
+                android:text="@string/macro_action_prefix"
+                android:textColor="@color/md_list_text"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/action_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -92,11 +116,23 @@
         android:paddingStart="12dp"
         android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/constraint_count"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
+            <TextView
+                android:id="@+id/constraint_badge"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/editor_section_constraint"
+                android:gravity="center"
+                android:text="@string/macro_constraint_prefix"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/constraint_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@android:color/white"
+                android:textSize="14sp" />
     </LinearLayout>
 </LinearLayout>

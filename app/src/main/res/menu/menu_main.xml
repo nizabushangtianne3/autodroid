@@ -2,4 +2,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/menu_import" android:title="@string/action_import" />
     <item android:id="@+id/menu_export" android:title="@string/action_export" />
+    <item android:id="@+id/menu_variables" android:title="@string/menu_variables" />
 </menu>

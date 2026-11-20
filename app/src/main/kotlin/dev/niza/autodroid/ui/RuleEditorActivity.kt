@@ -288,6 +288,8 @@ class RuleEditorActivity : AppCompatActivity() {
             RuleEditorLogic.ACTION_WAIT -> dev.niza.autodroid.engine.WaitAction(id, value.toLongOrNull() ?: 0)
             RuleEditorLogic.ACTION_REPEAT_START -> dev.niza.autodroid.engine.RepeatStartAction(id, value.toIntOrNull() ?: 1)
             RuleEditorLogic.ACTION_REPEAT_END -> dev.niza.autodroid.engine.RepeatEndAction(id)
+            RuleEditorLogic.ACTION_LAUNCH_APP -> dev.niza.autodroid.engine.LaunchAppAction(id, value)
+            RuleEditorLogic.ACTION_CLIPBOARD -> dev.niza.autodroid.engine.ClipboardAction(id, value)
             else -> NotifyAction(id, title = value, body = extra)
         }
 

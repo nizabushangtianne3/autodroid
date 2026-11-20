@@ -20,6 +20,11 @@ object RuleEditorLogic {
     const val TYPE_DOCK = 15
     const val TYPE_VPN = 16
     const val TYPE_GPS_ENABLED = 17
+    const val TYPE_DEVICE_UNLOCKED = 18
+    const val TYPE_CLIPBOARD_CHANGE = 19
+    const val TYPE_DARK_THEME = 20
+    const val TYPE_MEDIA_BUTTON = 21
+    const val TYPE_NOTIFICATION = 22
 
     const val ACTION_NOTIFY = 0
     const val ACTION_OPEN_URL = 1
@@ -44,6 +49,11 @@ object RuleEditorLogic {
             TYPE_DOCK -> "Dock state"
             TYPE_VPN -> "VPN connected (true/false)"
             TYPE_GPS_ENABLED -> "GPS enabled (true/false)"
+            TYPE_DEVICE_UNLOCKED -> "Trigger on unlock"
+            TYPE_CLIPBOARD_CHANGE -> "Trigger on clipboard change"
+            TYPE_DARK_THEME -> "Dark theme enabled (true/false)"
+            TYPE_MEDIA_BUTTON -> "Media button name"
+            TYPE_NOTIFICATION -> "App package (optional)"
             else -> "Link host"
         }
 
@@ -161,6 +171,11 @@ object RuleEditorLogic {
                 TYPE_DOCK -> trigger is dev.niza.autodroid.engine.DockTrigger
                 TYPE_VPN -> trigger is dev.niza.autodroid.engine.VpnTrigger
                 TYPE_GPS_ENABLED -> trigger is dev.niza.autodroid.engine.GPSEnabledTrigger
+                TYPE_DEVICE_UNLOCKED -> trigger is dev.niza.autodroid.engine.DeviceUnlockedTrigger
+                TYPE_CLIPBOARD_CHANGE -> trigger is dev.niza.autodroid.engine.ClipboardChangeTrigger
+                TYPE_DARK_THEME -> trigger is dev.niza.autodroid.engine.DarkThemeTrigger
+                TYPE_MEDIA_BUTTON -> trigger is dev.niza.autodroid.engine.MediaButtonTrigger
+                TYPE_NOTIFICATION -> trigger is dev.niza.autodroid.engine.NotificationTrigger
                 else -> trigger is dev.niza.autodroid.engine.LinkOpenedTrigger
             }
 
@@ -201,6 +216,11 @@ object RuleEditorLogic {
             is dev.niza.autodroid.engine.DockTrigger -> "Dock"
             is dev.niza.autodroid.engine.VpnTrigger -> "VPN"
             is dev.niza.autodroid.engine.GPSEnabledTrigger -> "GPS"
+            is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> "Unlock"
+            is dev.niza.autodroid.engine.ClipboardChangeTrigger -> "Clipboard"
+            is dev.niza.autodroid.engine.DarkThemeTrigger -> "Dark Theme"
+            is dev.niza.autodroid.engine.MediaButtonTrigger -> "Media Button"
+            is dev.niza.autodroid.engine.NotificationTrigger -> "Notification"
             else -> "Link"
         }
 }

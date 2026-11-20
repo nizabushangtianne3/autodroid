@@ -54,8 +54,14 @@ data class AppLaunchedEvent(
     }
 }
 
-class ScheduleFiredEvent : TriggerEvent {
+data class ScheduleFiredEvent(
+    val ruleId: String? = null,
+) : TriggerEvent {
     override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ScheduleTrigger
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        ruleId?.let { engine.setVariable("schedule_rule_id", it) }
+    }
 }
 
 data class ScreenOnOffEvent(
@@ -224,6 +230,43 @@ data class GPSEnabledEvent(
 
     override fun injectTriggerVariables(engine: AutomationEngine) {
         engine.setVariable("gps_enabled", enabled.toString())
+    }
+}
+
+class DeviceUnlockedEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.DeviceUnlockedTrigger
+}
+
+data class ClipboardChangeEvent(
+    val content: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ClipboardChangeTrigger
+}
+
+data class DarkThemeEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.DarkThemeTrigger && trigger.enabled == enabled
+    }
+}
+
+data class MediaButtonEvent(
+    val button: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        return trigger is dev.niza.autodroid.engine.MediaButtonTrigger && trigger.button == button
+    }
+}
+
+data class NotificationEvent(
+    val packageName: String,
+    val title: String,
+    val content: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.NotificationTrigger) return false
+        return trigger.packageName == null || trigger.packageName == packageName
     }
 }
 

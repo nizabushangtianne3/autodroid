@@ -29,6 +29,11 @@ val Trigger.value: String?
             is DockTrigger -> "dock $state"
             is VpnTrigger -> if (connected) "vpn connected" else "vpn disconnected"
             is GPSEnabledTrigger -> if (enabled) "gps on" else "gps off"
+            is DeviceUnlockedTrigger -> "device unlocked"
+            is ClipboardChangeTrigger -> "clipboard changed"
+            is DarkThemeTrigger -> if (enabled) "dark theme on" else "dark theme off"
+            is MediaButtonTrigger -> "media button"
+            is NotificationTrigger -> "notification received"
         }
 
 val Action.summary: String
@@ -175,6 +180,39 @@ data class VpnTrigger(
 data class GPSEnabledTrigger(
     override val id: String,
     val enabled: Boolean,
+) : Trigger
+
+@Serializable
+@SerialName("device_unlocked")
+data class DeviceUnlockedTrigger(
+    override val id: String,
+) : Trigger
+
+@Serializable
+@SerialName("clipboard_change")
+data class ClipboardChangeTrigger(
+    override val id: String,
+) : Trigger
+
+@Serializable
+@SerialName("dark_theme")
+data class DarkThemeTrigger(
+    override val id: String,
+    val enabled: Boolean,
+) : Trigger
+
+@Serializable
+@SerialName("media_button")
+data class MediaButtonTrigger(
+    override val id: String,
+    val button: String,
+) : Trigger
+
+@Serializable
+@SerialName("notification")
+data class NotificationTrigger(
+    override val id: String,
+    val packageName: String? = null,
 ) : Trigger
 
 @Serializable

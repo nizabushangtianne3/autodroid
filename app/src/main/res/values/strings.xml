@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">AutoDroid</string>
+    <string name="tab_rules">规则</string>
+    <string name="tab_logs">执行日志</string>
+    <string name="rules_title">我的规则</string>
+    <string name="rules_empty">还没有规则。\n点击右下角 + 创建第一条自动化规则。</string>
+    <string name="logs_title">执行日志</string>
+    <string name="logs_empty">暂无执行记录。\n规则触发后会在这里显示。</string>
+    <string name="filter_trigger">触发类型</string>
+    <string name="filter_action">动作类型</string>
+    <string name="action_edit">编辑规则</string>
+    <string name="action_export">导出规则</string>
+    <string name="action_import">导入规则</string>
+    <string name="action_logs">执行日志</string>
+    <string name="action_add">新建规则</string>
+    <string name="delete_confirm">长按删除规则</string>
+    <string name="toolbar_subtitle">22 种触发 • 10 种动作</string>
+    <string name="form_trigger">触发条件</string>
+    <string name="form_action">执行动作</string>
+    <string name="form_cancel">取消</string>
+    <string name="form_save">保存</string>
+    <string name="enabled">启用规则</string>
 </resources>

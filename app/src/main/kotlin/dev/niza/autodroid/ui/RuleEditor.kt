@@ -10,7 +10,9 @@ import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import dev.niza.autodroid.DataSmsRegistrar
 import dev.niza.autodroid.MainActivity
+import dev.niza.autodroid.R
 import dev.niza.autodroid.Runtime
+import dev.niza.autodroid.ScheduleRegistrar
 import dev.niza.autodroid.engine.AppLaunchedTrigger
 import dev.niza.autodroid.engine.DataSmsReceivedTrigger
 import dev.niza.autodroid.engine.LinkOpenedTrigger
@@ -19,6 +21,7 @@ import dev.niza.autodroid.engine.OpenUrlAction
 import dev.niza.autodroid.engine.Rule
 import dev.niza.autodroid.engine.SendDataSmsAction
 import dev.niza.autodroid.engine.value
+import dev.niza.autodroid.render
 
 class RuleEditor(private val activity: MainActivity) {
     fun editRule(
@@ -41,12 +44,33 @@ class RuleEditor(private val activity: MainActivity) {
                             "Screen On/Off", "Battery Level", "Airplane Mode", "Bluetooth",
                             "Power", "Headphones", "Hotspot", "Silent Mode",
                             "WiFi Connection", "WiFi SSID", "Signal On/Off", "Dock", "VPN", "GPS",
+                            "Device Unlocked", "Clipboard", "Dark Theme", "Media Button", "Notification",
                         ),
                     )
                 setSelection(
                     when (rule.trigger) {
                         is AppLaunchedTrigger -> 1
                         is DataSmsReceivedTrigger -> 2
+                        is dev.niza.autodroid.engine.ScheduleTrigger -> RuleEditorLogic.TYPE_SCHEDULE
+                        is dev.niza.autodroid.engine.ScreenOnOffTrigger -> RuleEditorLogic.TYPE_SCREEN_ON_OFF
+                        is dev.niza.autodroid.engine.BatteryLevelTrigger -> RuleEditorLogic.TYPE_BATTERY_LEVEL
+                        is dev.niza.autodroid.engine.AirplaneModeTrigger -> RuleEditorLogic.TYPE_AIRPLANE_MODE
+                        is dev.niza.autodroid.engine.BluetoothTrigger -> RuleEditorLogic.TYPE_BLUETOOTH
+                        is dev.niza.autodroid.engine.ExternalPowerTrigger -> RuleEditorLogic.TYPE_EXTERNAL_POWER
+                        is dev.niza.autodroid.engine.HeadphonesTrigger -> RuleEditorLogic.TYPE_HEADPHONES
+                        is dev.niza.autodroid.engine.HotspotTrigger -> RuleEditorLogic.TYPE_HOTSPOT
+                        is dev.niza.autodroid.engine.SilentModeTrigger -> RuleEditorLogic.TYPE_SILENT_MODE
+                        is dev.niza.autodroid.engine.WifiConnectionTrigger -> RuleEditorLogic.TYPE_WIFI_CONNECTION
+                        is dev.niza.autodroid.engine.WifiSSIDTrigger -> RuleEditorLogic.TYPE_WIFI_SSID
+                        is dev.niza.autodroid.engine.SignalOnOffTrigger -> RuleEditorLogic.TYPE_SIGNAL_ON_OFF
+                        is dev.niza.autodroid.engine.DockTrigger -> RuleEditorLogic.TYPE_DOCK
+                        is dev.niza.autodroid.engine.VpnTrigger -> RuleEditorLogic.TYPE_VPN
+                        is dev.niza.autodroid.engine.GPSEnabledTrigger -> RuleEditorLogic.TYPE_GPS_ENABLED
+                        is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> RuleEditorLogic.TYPE_DEVICE_UNLOCKED
+                        is dev.niza.autodroid.engine.ClipboardChangeTrigger -> RuleEditorLogic.TYPE_CLIPBOARD_CHANGE
+                        is dev.niza.autodroid.engine.DarkThemeTrigger -> RuleEditorLogic.TYPE_DARK_THEME
+                        is dev.niza.autodroid.engine.MediaButtonTrigger -> RuleEditorLogic.TYPE_MEDIA_BUTTON
+                        is dev.niza.autodroid.engine.NotificationTrigger -> RuleEditorLogic.TYPE_NOTIFICATION
                         else -> 0
                     },
                 )
@@ -74,6 +98,11 @@ class RuleEditor(private val activity: MainActivity) {
                             is dev.niza.autodroid.engine.DockTrigger -> RuleEditorLogic.TYPE_DOCK
                             is dev.niza.autodroid.engine.VpnTrigger -> RuleEditorLogic.TYPE_VPN
                             is dev.niza.autodroid.engine.GPSEnabledTrigger -> RuleEditorLogic.TYPE_GPS_ENABLED
+                            is dev.niza.autodroid.engine.DeviceUnlockedTrigger -> RuleEditorLogic.TYPE_DEVICE_UNLOCKED
+                            is dev.niza.autodroid.engine.ClipboardChangeTrigger -> RuleEditorLogic.TYPE_CLIPBOARD_CHANGE
+                            is dev.niza.autodroid.engine.DarkThemeTrigger -> RuleEditorLogic.TYPE_DARK_THEME
+                            is dev.niza.autodroid.engine.MediaButtonTrigger -> RuleEditorLogic.TYPE_MEDIA_BUTTON
+                            is dev.niza.autodroid.engine.NotificationTrigger -> RuleEditorLogic.TYPE_NOTIFICATION
                             else -> RuleEditorLogic.TYPE_LINK
                         },
                     )
@@ -203,9 +232,9 @@ class RuleEditor(private val activity: MainActivity) {
                 addView(enabled)
             }
         AlertDialog.Builder(activity)
-            .setTitle("Edit rule")
+            .setTitle(activity.getString(R.string.action_edit))
             .setView(form)
-            .setPositiveButton("Save") { _, _ ->
+            .setPositiveButton(activity.getString(R.string.form_save)) { _, _ ->
                 val sequence = rule.id.substringAfterLast('-')
                 val value = triggerValue.text.toString()
                 val triggerValidationError = RuleEditorLogic.validateTrigger(triggerType.selectedItemPosition, value)
@@ -266,6 +295,16 @@ class RuleEditor(private val activity: MainActivity) {
                             dev.niza.autodroid.engine.VpnTrigger(triggerId, connected = value.toBooleanStrictOrNull() ?: true)
                         RuleEditorLogic.TYPE_GPS_ENABLED ->
                             dev.niza.autodroid.engine.GPSEnabledTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_DEVICE_UNLOCKED ->
+                            dev.niza.autodroid.engine.DeviceUnlockedTrigger(triggerId)
+                        RuleEditorLogic.TYPE_CLIPBOARD_CHANGE ->
+                            dev.niza.autodroid.engine.ClipboardChangeTrigger(triggerId)
+                        RuleEditorLogic.TYPE_DARK_THEME ->
+                            dev.niza.autodroid.engine.DarkThemeTrigger(triggerId, enabled = value.toBooleanStrictOrNull() ?: true)
+                        RuleEditorLogic.TYPE_MEDIA_BUTTON ->
+                            dev.niza.autodroid.engine.MediaButtonTrigger(triggerId, button = value)
+                        RuleEditorLogic.TYPE_NOTIFICATION ->
+                            dev.niza.autodroid.engine.NotificationTrigger(triggerId, packageName = value.ifBlank { null })
                         else -> LinkOpenedTrigger(triggerId, host = value)
                     }
                 val updated =
@@ -287,9 +326,10 @@ class RuleEditor(private val activity: MainActivity) {
                 Runtime.engine.replace(updated)
                 Runtime.saveRules(activity)
                 DataSmsRegistrar.refresh(activity)
+                ScheduleRegistrar.refresh(activity)
                 activity.render(listView)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(activity.getString(R.string.form_cancel), null)
             .show()
     }
 

@@ -81,6 +81,35 @@
 
 条件示例：`{battery_level} <= 20`、`{app_package} == com.example.app`、`{wifi_connected} == true`
 
+### 逻辑运算符
+
+条件表达式支持 `&&`（与）和 `||`（或）组合多个比较，`&&` 优先级高于 `||`：
+
+```
+{battery_level} <= 20 && {power_connected} == false
+{app_package} == com.example.app || {app_package} == com.example.app2
+```
+
+### 执行日志
+
+每次规则派发都会记录执行日志（上限 100 条，超出自动淘汰最旧记录）：
+
+- 时间戳
+- 匹配规则数
+- 每个动作的成功/失败状态和错误消息
+
+通过 `AutomationEngine.executionLog()` 获取。
+
+### Repeat 重复块
+
+`Repeat Start` / `Repeat End` 动作对中间的动作块按指定次数循环执行。循环内 `Set Variable` 支持 `{loop_index}` 占位符（从 1 递增）：
+
+```
+Repeat Start (count = 3)
+  Set Variable: index = {loop_index}
+Repeat End
+```
+
 ## 构建
 
 ```bash

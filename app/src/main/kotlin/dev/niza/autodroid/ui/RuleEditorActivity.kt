@@ -55,17 +55,22 @@ class RuleEditorActivity : AppCompatActivity() {
 
     private fun setupTrigger(rule: Rule) {
         val spinner = findViewById<AppCompatSpinner>(R.id.spinner_trigger_type)
-        val input = findViewById<AutoCompleteTextView>(R.id.input_trigger_value)
+        val first = findViewById<EditText>(R.id.input_trigger_value)
+        val second = findViewById<EditText>(R.id.input_trigger_sender)
+        val third = findViewById<EditText>(R.id.input_trigger_extra)
         spinner.adapter =
             ArrayAdapter(
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
-                RuleEditorLogic.triggerLabels(),
+                RuleEditorLogic.triggerEntries.map { it.label },
             )
-        spinner.setSelection(RuleEditorLogic.typePosition(rule.trigger))
-        input.setText(rule.trigger.let { trigger -> trigger.value.orEmpty() })
-        input.hint = RuleEditorLogic.triggerHint(spinner.selectedItemPosition)
-        input.setAdapter(
+        spinner.setSelection(RuleEditorLogic.triggerPosition(rule.trigger))
+        val fields = RuleEditorLogic.triggerFields(spinner.selectedItemPosition)
+        applyFieldHints(fields, first, second, third)
+        first.setText(triggerValues(rule).first)
+        second.setText(triggerValues(rule).second)
+        third.setText(triggerValues(rule).third)
+        (first as? AutoCompleteTextView)?.setAdapter(
             ArrayAdapter(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
@@ -80,15 +85,64 @@ class RuleEditorActivity : AppCompatActivity() {
                     position: Int,
                     id: Long,
                 ) {
-                    input.hint = RuleEditorLogic.triggerHint(position)
+                    applyFieldHints(RuleEditorLogic.triggerFields(position), first, second, third)
                 }
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             }
-        findViewById<EditText>(R.id.input_trigger_sender).setText(
-            (rule.trigger as? dev.niza.autodroid.engine.DataSmsReceivedTrigger)?.sender.orEmpty(),
-        )
     }
+
+    private fun applyFieldHints(
+        fields: List<dev.niza.autodroid.engine.TriggerDescriptor.Field>,
+        first: EditText,
+        second: EditText,
+        third: EditText,
+    ) {
+        listOf(first, second, third).forEachIndexed { index, field ->
+            val type = fields.getOrNull(index)
+            field.hint = type?.let { RuleEditorLogic.fieldHint(it) } ?: ""
+        }
+    }
+
+    /** Reads the three editor fields back out of an existing trigger so it can be re-saved. */
+    private fun triggerValues(rule: Rule): Triple<String, String, String> =
+        when (val trigger = rule.trigger) {
+            is dev.niza.autodroid.engine.LinkOpenedTrigger ->
+                Triple(
+                    trigger.host.orEmpty(),
+                    trigger.scheme.orEmpty(),
+                    trigger.pathPrefix.orEmpty(),
+                )
+            is dev.niza.autodroid.engine.AppLaunchedTrigger -> Triple(trigger.packageName, "", "")
+            is dev.niza.autodroid.engine.DataSmsReceivedTrigger -> Triple(trigger.destinationPort.toString(), trigger.sender.orEmpty(), "")
+            is dev.niza.autodroid.engine.ScheduleTrigger -> Triple(trigger.intervalMillis.toString(), "", "")
+            is dev.niza.autodroid.engine.BatteryLevelTrigger -> Triple(trigger.level.toString(), trigger.direction, "")
+            is dev.niza.autodroid.engine.BatteryTemperatureTrigger -> Triple(trigger.temperatureCelsius.toString(), trigger.direction, "")
+            is dev.niza.autodroid.engine.LightSensorTrigger -> Triple(trigger.lux.toString(), trigger.direction, "")
+            is dev.niza.autodroid.engine.WifiSSIDTrigger -> Triple(trigger.ssid, "", "")
+            is dev.niza.autodroid.engine.DockTrigger -> Triple(trigger.state, "", "")
+            is dev.niza.autodroid.engine.IncomingCallTrigger -> Triple(trigger.phoneNumber.orEmpty(), "", "")
+            is dev.niza.autodroid.engine.IncomingSMSTrigger -> Triple(trigger.sender.orEmpty(), trigger.contentMatch.orEmpty(), "")
+            is dev.niza.autodroid.engine.MediaButtonTrigger -> Triple(trigger.button, "", "")
+            is dev.niza.autodroid.engine.IntentReceivedTrigger -> Triple(trigger.action, "", "")
+            is dev.niza.autodroid.engine.LogcatTrigger -> Triple(trigger.pattern, "", "")
+            is dev.niza.autodroid.engine.VariableTrigger -> Triple(trigger.variableName, trigger.expression, "")
+            is dev.niza.autodroid.engine.MacroFinishedTrigger -> Triple(trigger.macroId, "", "")
+            is dev.niza.autodroid.engine.ShortcutTrigger -> Triple(trigger.shortcutName, "", "")
+            is dev.niza.autodroid.engine.GeofenceTrigger ->
+                Triple(
+                    trigger.name,
+                    trigger.radiusMeters.toString(),
+                    if (trigger.enter) "true" else "false",
+                )
+            is dev.niza.autodroid.engine.DataUsedTrigger -> Triple(trigger.bytes.toString(), trigger.direction, "")
+            is dev.niza.autodroid.engine.FailedLoginTrigger -> Triple(trigger.attempts.toString(), "", "")
+            is dev.niza.autodroid.engine.StopwatchTrigger -> Triple(trigger.durationMillis.toString(), "", "")
+            is dev.niza.autodroid.engine.HttpServerTrigger -> Triple(trigger.port.toString(), "", "")
+            is dev.niza.autodroid.engine.DayOfMonthTrigger -> Triple(trigger.day.toString(), "", "")
+            is dev.niza.autodroid.engine.AppLifecycleTrigger -> Triple(if (trigger.added) "installed" else "removed", "", "")
+            else -> Triple(rule.trigger.value.orEmpty(), "", "")
+        }
 
     private fun setupAction(rule: Rule) {
         val spinner = findViewById<AppCompatSpinner>(R.id.spinner_action_type)
@@ -98,14 +152,15 @@ class RuleEditorActivity : AppCompatActivity() {
             ArrayAdapter(
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
-                RuleEditorLogic.actionLabels(),
+                RuleEditorLogic.actionEntries.map { it.label },
             )
-        spinner.setSelection(RuleEditorLogic.actionTypePosition(rule.actions.firstOrNull()))
-        value.setText(RuleEditorLogic.actionValue(rule.actions.firstOrNull()))
-        extra.setText(RuleEditorLogic.actionExtra(rule.actions.firstOrNull()))
-        findViewById<EditText>(R.id.input_action_port).setText(
-            (rule.actions.firstOrNull() as? SendDataSmsAction)?.destinationPort?.toString().orEmpty(),
-        )
+        spinner.setSelection(RuleEditorLogic.actionPosition(rule.actions.firstOrNull()))
+        val fields = RuleEditorLogic.actionFields(spinner.selectedItemPosition)
+        applyFieldHints(fields, value, extra, findViewById(R.id.input_action_port))
+        val existing = actionValues(rule.actions.firstOrNull())
+        value.setText(existing.first)
+        extra.setText(existing.second)
+        findViewById<EditText>(R.id.input_action_port).setText(existing.third)
         spinner.onItemSelectedListener =
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -114,8 +169,12 @@ class RuleEditorActivity : AppCompatActivity() {
                     position: Int,
                     id: Long,
                 ) {
-                    value.hint = RuleEditorLogic.actionHint(position)
-                    extra.hint = RuleEditorLogic.actionExtraHint(position)
+                    applyFieldHints(
+                        RuleEditorLogic.actionFields(position),
+                        value,
+                        extra,
+                        findViewById(R.id.input_action_port),
+                    )
                 }
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
@@ -132,18 +191,51 @@ class RuleEditorActivity : AppCompatActivity() {
                 val value = findViewById<EditText>(R.id.input_action_value).text.toString().trim()
                 val extra = findViewById<EditText>(R.id.input_action_extra).text.toString().trim()
                 val port = findViewById<EditText>(R.id.input_action_port).text.toString().trim()
-                val error = RuleEditorLogic.validateAction(typePosition, value, extra, port)
+                val error =
+                    RuleEditorLogic.validateCatalogFields(
+                        RuleEditorLogic.actionFields(typePosition),
+                        listOf(value, extra, port),
+                    )
                 if (error != null) {
                     Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                actions += buildAction("action-${actions.size + 1}-${System.currentTimeMillis()}", typePosition, value, extra, port)
+                val actionId = "action-${actions.size + 1}-${System.currentTimeMillis()}"
+                actions += RuleEditorLogic.buildCatalogAction(actionId, typePosition, value, extra, port)
                 renderActions()
                 findViewById<EditText>(R.id.input_action_value).setText("")
                 findViewById<EditText>(R.id.input_action_extra).setText("")
                 findViewById<EditText>(R.id.input_action_port).setText("")
             }
     }
+
+    private fun actionValues(action: Action?): Triple<String, String, String> =
+        when (action) {
+            null -> Triple("", "", "")
+            is dev.niza.autodroid.engine.NotifyAction -> Triple(action.title, action.body, "")
+            is dev.niza.autodroid.engine.OpenUrlAction -> Triple(action.url, "", "")
+            is dev.niza.autodroid.engine.SendDataSmsAction ->
+                Triple(action.sender, action.destinationPort.toString(), action.payload.joinToString("") { "%02X".format(it) })
+            is dev.niza.autodroid.engine.SetVariableAction -> Triple(action.name, action.value, "")
+            is dev.niza.autodroid.engine.WaitAction -> Triple(action.durationMillis.toString(), "", "")
+            is dev.niza.autodroid.engine.RepeatStartAction -> Triple(action.count.toString(), "", "")
+            is dev.niza.autodroid.engine.LaunchAppAction -> Triple(action.packageName, "", "")
+            is dev.niza.autodroid.engine.ClipboardAction -> Triple(action.text, "", "")
+            is dev.niza.autodroid.engine.SpeakTextAction -> Triple(action.text, "", "")
+            is dev.niza.autodroid.engine.VibrateAction -> Triple(action.durationMillis.toString(), "", "")
+            is dev.niza.autodroid.engine.SetVolumeAction -> Triple(action.stream, action.level.toString(), "")
+            is dev.niza.autodroid.engine.SetBrightnessAction -> Triple(action.level.toString(), action.automatic.toString(), "")
+            is dev.niza.autodroid.engine.ToastAction -> Triple(action.text, "", "")
+            is dev.niza.autodroid.engine.SendSMSAction -> Triple(action.recipient, action.message, "")
+            is dev.niza.autodroid.engine.MakeCallAction -> Triple(action.phoneNumber, "", "")
+            is dev.niza.autodroid.engine.IfConditionAction -> Triple(action.expression, "", "")
+            is dev.niza.autodroid.engine.WriteToFileAction -> Triple(action.path, action.content, "")
+            is dev.niza.autodroid.engine.LogAction -> Triple(action.message, "", "")
+            is dev.niza.autodroid.engine.IterateDictionaryAction -> Triple(action.dictionaryName, action.keyVariable, action.valueVariable)
+            is dev.niza.autodroid.engine.SetDictionaryEntryAction -> Triple(action.dictionaryName, action.key, action.value)
+            is dev.niza.autodroid.engine.ShareTextAction -> Triple(action.subject, action.text, "")
+            else -> Triple(action.summary, "", "")
+        }
 
     private fun setupConstraints(rule: Rule) {
         val spinner = findViewById<AppCompatSpinner>(R.id.spinner_constraint_type)
@@ -200,8 +292,14 @@ class RuleEditorActivity : AppCompatActivity() {
         findViewById<com.google.android.material.button.MaterialButton>(R.id.button_save_macro)
             .setOnClickListener {
                 val triggerType = findViewById<AppCompatSpinner>(R.id.spinner_trigger_type).selectedItemPosition
-                val triggerValue = findViewById<AutoCompleteTextView>(R.id.input_trigger_value).text.toString()
-                val triggerError = RuleEditorLogic.validateTrigger(triggerType, triggerValue)
+                val triggerFirst = findViewById<EditText>(R.id.input_trigger_value).text.toString().trim()
+                val triggerSecond = findViewById<EditText>(R.id.input_trigger_sender).text.toString().trim()
+                val triggerThird = findViewById<EditText>(R.id.input_trigger_extra).text.toString().trim()
+                val triggerError =
+                    RuleEditorLogic.validateCatalogFields(
+                        RuleEditorLogic.triggerFields(triggerType),
+                        listOf(triggerFirst, triggerSecond, triggerThird),
+                    )
                 if (triggerError != null) {
                     Toast.makeText(this, triggerError, Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
@@ -212,11 +310,12 @@ class RuleEditorActivity : AppCompatActivity() {
                     rule.copy(
                         name = name,
                         trigger =
-                            RuleEditorLogic.buildTrigger(
+                            RuleEditorLogic.buildCatalogTrigger(
                                 rule.trigger.id,
                                 triggerType,
-                                triggerValue,
-                                senderInput(),
+                                triggerFirst,
+                                triggerSecond,
+                                triggerThird,
                             ),
                         actions = actions.toList(),
                         constraints = constraints.toList(),
@@ -230,8 +329,6 @@ class RuleEditorActivity : AppCompatActivity() {
                 finish()
             }
     }
-
-    private fun senderInput(): String? = findViewById<EditText>(R.id.input_trigger_sender).text.toString().trim().ifBlank { null }
 
     private fun renderConstraints() {
         findViewById<ListView>(R.id.list_constraints).adapter =
@@ -264,34 +361,6 @@ class RuleEditorActivity : AppCompatActivity() {
             trigger = LinkOpenedTrigger("trigger-$id", host = ""),
             actions = listOf(NotifyAction("action-$id", "AutoDroid", "Triggered")),
         )
-
-    private fun buildAction(
-        id: String,
-        typePosition: Int,
-        value: String,
-        extra: String,
-        port: String,
-    ): Action =
-        when (typePosition) {
-            RuleEditorLogic.ACTION_OPEN_URL -> OpenUrlAction(id, value)
-            RuleEditorLogic.ACTION_SEND_DATA_SMS ->
-                SendDataSmsAction(
-                    id,
-                    destinationPort = port.toIntOrNull() ?: 0,
-                    sender = value,
-                    payload = RuleEditorLogic.parseHex(extra),
-                )
-            RuleEditorLogic.ACTION_SET_VARIABLE -> dev.niza.autodroid.engine.SetVariableAction(id, value, extra)
-            RuleEditorLogic.ACTION_IF_CONDITION -> dev.niza.autodroid.engine.IfConditionAction(id, value)
-            RuleEditorLogic.ACTION_ELSE_CONDITION -> dev.niza.autodroid.engine.ElseConditionAction(id)
-            RuleEditorLogic.ACTION_END_IF -> dev.niza.autodroid.engine.EndIfAction(id)
-            RuleEditorLogic.ACTION_WAIT -> dev.niza.autodroid.engine.WaitAction(id, value.toLongOrNull() ?: 0)
-            RuleEditorLogic.ACTION_REPEAT_START -> dev.niza.autodroid.engine.RepeatStartAction(id, value.toIntOrNull() ?: 1)
-            RuleEditorLogic.ACTION_REPEAT_END -> dev.niza.autodroid.engine.RepeatEndAction(id)
-            RuleEditorLogic.ACTION_LAUNCH_APP -> dev.niza.autodroid.engine.LaunchAppAction(id, value)
-            RuleEditorLogic.ACTION_CLIPBOARD -> dev.niza.autodroid.engine.ClipboardAction(id, value)
-            else -> NotifyAction(id, title = value, body = extra)
-        }
 
     companion object {
         const val EXTRA_RULE_ID = "extra_rule_id"

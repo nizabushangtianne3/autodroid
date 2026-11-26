@@ -1,6 +1,92 @@
 package dev.niza.autodroid.ui
 
 object RuleEditorLogic {
+    /** Catalog-driven labels used by the editor pickers. */
+    val triggerEntries: List<dev.niza.autodroid.engine.EntrySpec> get() = dev.niza.autodroid.engine.TriggerCatalog.entries
+
+    val actionEntries: List<dev.niza.autodroid.engine.EntrySpec> get() = dev.niza.autodroid.engine.ActionCatalog.entries
+
+    /** Position of [trigger] in the catalog, or the first entry when it is unknown. */
+    fun triggerPosition(trigger: dev.niza.autodroid.engine.Trigger): Int =
+        dev.niza.autodroid.engine.TriggerCatalog.indexOfTrigger(trigger).let { if (it >= 0) it else 0 }
+
+    fun actionPosition(action: dev.niza.autodroid.engine.Action?): Int =
+        action?.let { dev.niza.autodroid.engine.ActionCatalog.indexOfAction(it) }?.let { if (it >= 0) it else 0 } ?: 0
+
+    /** Builds a trigger from catalog position plus the editor's three text fields. */
+    fun buildCatalogTrigger(
+        triggerId: String,
+        position: Int,
+        first: String,
+        second: String,
+        third: String,
+    ): dev.niza.autodroid.engine.Trigger =
+        triggerEntries[position].build(
+            dev.niza.autodroid.engine.EntryInput(id = triggerId, first = first, second = second, third = third),
+        ) as dev.niza.autodroid.engine.Trigger
+
+    fun buildCatalogAction(
+        actionId: String,
+        position: Int,
+        first: String,
+        second: String,
+        third: String,
+    ): dev.niza.autodroid.engine.Action =
+        actionEntries[position].build(
+            dev.niza.autodroid.engine.EntryInput(id = actionId, first = first, second = second, third = third),
+        ) as dev.niza.autodroid.engine.Action
+
+    fun triggerFields(position: Int): List<dev.niza.autodroid.engine.TriggerDescriptor.Field> = triggerEntries[position].fields
+
+    fun actionFields(position: Int): List<dev.niza.autodroid.engine.TriggerDescriptor.Field> = actionEntries[position].fields
+
+    fun triggerEntryHint(position: Int): String = triggerEntries[position].hint
+
+    fun actionEntryHint(position: Int): String = actionEntries[position].hint
+
+    /** Human readable per-field hint for the editor form. */
+    fun fieldHint(field: dev.niza.autodroid.engine.TriggerDescriptor.Field): String =
+        when (field) {
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.TEXT -> "文本"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.BOOLEAN -> "true / false"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.NUMBER -> "数字"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.PHONE -> "手机号码"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.PACKAGE -> "应用包名"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_ABOVE_BELOW -> "above / below"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_ENTER_EXIT -> "enter / exit"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_STREAM -> "media / ring / alarm / notification"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_RINGER -> "normal / vibrate / silent"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_ORIENTATION -> "portrait / landscape"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_MEDIA_COMMAND -> "play / pause / next / previous / stop"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.CHOICE_SETTING_TYPE -> "system / secure / global"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.TIME_RANGE -> "HH:mm-HH:mm"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.DAY_LIST -> "星期 1-7"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.LAT_LON -> "纬度 / 经度 / 半径"
+            dev.niza.autodroid.engine.TriggerDescriptor.Field.HEX -> "HEX 数据"
+        }
+
+    /** Validates the editor text against the field types the catalog declared. */
+    fun validateCatalogFields(
+        fields: List<dev.niza.autodroid.engine.TriggerDescriptor.Field>,
+        values: List<String>,
+    ): String? {
+        fields.forEachIndexed { index, field ->
+            val value = values.getOrNull(index)?.trim().orEmpty()
+            val error =
+                when (field) {
+                    dev.niza.autodroid.engine.TriggerDescriptor.Field.BOOLEAN ->
+                        if (value.isNotEmpty() && value.toBooleanStrictOrNull() == null) "请输入 true 或 false" else null
+                    dev.niza.autodroid.engine.TriggerDescriptor.Field.NUMBER ->
+                        if (value.isNotEmpty() && value.toLongOrNull() == null) "请输入数字" else null
+                    dev.niza.autodroid.engine.TriggerDescriptor.Field.HEX ->
+                        if (value.isNotEmpty() && dev.niza.autodroid.engine.parseHexText(value).isEmpty()) "请输入有效 HEX 数据" else null
+                    else -> null
+                }
+            if (error != null) return error
+        }
+        return null
+    }
+
     private const val FILTER_ALL = 0
     const val TYPE_LINK = 0
     const val TYPE_APP = 1
@@ -299,11 +385,13 @@ object RuleEditorLogic {
             return when (typePosition) {
                 ACTION_OPEN_URL -> "请输入网址"
                 ACTION_SEND_DATA_SMS -> "请输入手机号码"
+                ACTION_ELSE_CONDITION, ACTION_END_IF, ACTION_REPEAT_END -> null
                 else -> "请输入通知标题"
             }
         }
         return when (typePosition) {
             ACTION_OPEN_URL -> null
+            ACTION_ELSE_CONDITION, ACTION_END_IF, ACTION_REPEAT_END -> null
             ACTION_SET_VARIABLE, ACTION_WAIT, ACTION_REPEAT_START ->
                 when {
                     value.toLongOrNull() == null -> "请输入数字"
@@ -312,6 +400,9 @@ object RuleEditorLogic {
                     ACTION_SET_VARIABLE == typePosition && extra.isBlank() -> "请输入变量值"
                     else -> null
                 }
+            ACTION_LAUNCH_APP ->
+                if (PACKAGE_NAME_PATTERN.matches(value)) null else "请输入有效 Android 包名"
+            ACTION_CLIPBOARD -> null
             ACTION_SEND_DATA_SMS ->
                 when {
                     port.toIntOrNull() !in 1..65535 -> "动作端口必须是 1-65535"

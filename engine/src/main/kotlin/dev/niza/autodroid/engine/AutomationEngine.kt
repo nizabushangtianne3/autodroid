@@ -277,7 +277,7 @@ data class AppLifecycleEvent(
     override fun matches(trigger: Trigger): Boolean {
         if (trigger !is dev.niza.autodroid.engine.AppLifecycleTrigger) return false
         if (trigger.added != added) return false
-        return added
+        return true
     }
 
     override fun injectTriggerVariables(engine: AutomationEngine) {
@@ -298,12 +298,766 @@ data class PowerSaveModeEvent(
     }
 }
 
+class BootEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.BootTrigger
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("boot_completed", "true")
+    }
+}
+
+data class BatteryTemperatureEvent(
+    val temperatureCelsius: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.BatteryTemperatureTrigger) return false
+        val threshold = trigger.temperatureCelsius
+        return if (trigger.direction == "below") {
+            temperatureCelsius <= threshold
+        } else {
+            temperatureCelsius >= threshold
+        }
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("battery_temperature", temperatureCelsius.toString())
+    }
+}
+
+data class CellConnectionTypeEvent(
+    val connectionType: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.CellConnectionTypeTrigger && trigger.connectionType == connectionType
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("cell_connection", connectionType)
+    }
+}
+
+data class DataOnOffEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.DataOnOffTrigger && trigger.enabled == enabled
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("mobile_data", enabled.toString())
+    }
+}
+
+data class AutoRotateEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.AutoRotateTrigger && trigger.enabled == enabled
+}
+
+class ShakeDeviceEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ShakeDeviceTrigger
+}
+
+data class FlipDeviceEvent(
+    val faceDown: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.FlipDeviceTrigger && trigger.faceDown == faceDown
+}
+
+data class ProximityEvent(
+    val near: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.ProximityTrigger && trigger.near == near
+}
+
+data class LightSensorEvent(
+    val lux: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.LightSensorTrigger) return false
+        return if (trigger.direction == "below") lux <= trigger.lux else lux >= trigger.lux
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("light_level", lux.toString())
+    }
+}
+
+data class OrientationEvent(
+    val orientation: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.OrientationTrigger && trigger.orientation == orientation
+}
+
+data class VolumeButtonEvent(
+    val button: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.VolumeButtonTrigger && trigger.button == button
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("volume_button", button)
+    }
+}
+
+data class VolumeLongPressEvent(
+    val button: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.VolumeLongPressTrigger && trigger.button == button
+}
+
+data class PowerButtonEvent(
+    val event: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.PowerButtonTrigger && trigger.event == event
+}
+
+class HomeButtonLongPressEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.HomeButtonLongPressTrigger
+}
+
+class RecentAppsEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.RecentAppsTrigger
+}
+
+data class IncomingCallEvent(
+    val phoneNumber: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.IncomingCallTrigger) return false
+        return trigger.phoneNumber == null || trigger.phoneNumber == phoneNumber
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("call_number", phoneNumber)
+        engine.setVariable("call_direction", "incoming")
+    }
+}
+
+data class OutgoingCallEvent(
+    val phoneNumber: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.OutgoingCallTrigger) return false
+        return trigger.phoneNumber == null || trigger.phoneNumber == phoneNumber
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("call_number", phoneNumber)
+        engine.setVariable("call_direction", "outgoing")
+    }
+}
+
+data class CallMissedEvent(
+    val phoneNumber: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.CallMissedTrigger) return false
+        return trigger.phoneNumber == null || trigger.phoneNumber == phoneNumber
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("call_number", phoneNumber)
+    }
+}
+
+data class CallEndedEvent(
+    val phoneNumber: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.CallEndedTrigger) return false
+        return trigger.phoneNumber == null || trigger.phoneNumber == phoneNumber
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("call_number", phoneNumber)
+    }
+}
+
+data class CallActiveEvent(
+    val direction: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.CallActiveTrigger && trigger.direction == direction
+}
+
+data class IncomingSMSEvent(
+    val sender: String,
+    val message: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.IncomingSMSTrigger) return false
+        if (trigger.sender != null && trigger.sender != sender) return false
+        return trigger.contentMatch == null || message.contains(trigger.contentMatch)
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("sms_sender", sender)
+        engine.setVariable("sms_message", message)
+    }
+}
+
+data class SMSSentEvent(
+    val recipient: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.SMSSentTrigger) return false
+        return trigger.recipient == null || trigger.recipient == recipient
+    }
+}
+
+data class ToastEvent(
+    val packageName: String,
+    val text: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ToastTrigger) return false
+        if (trigger.packageName != null && trigger.packageName != packageName) return false
+        return trigger.textMatch == null || text.contains(trigger.textMatch)
+    }
+}
+
+data class CalendarEvent(
+    val title: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.CalendarTrigger
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("calendar_title", title)
+    }
+}
+
+data class ShortcutEvent(
+    val shortcutName: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.ShortcutTrigger && trigger.shortcutName == shortcutName
+}
+
+data class WidgetPressedEvent(
+    val widgetLabel: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.WidgetPressedTrigger && trigger.widgetLabel == widgetLabel
+}
+
+data class QuickSettingsTileEvent(
+    val tileState: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.QuickSettingsTileTrigger && trigger.tileState == tileState
+}
+
+data class IntentReceivedEvent(
+    val action: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.IntentReceivedTrigger && trigger.action == action
+}
+
+data class ShareTextEvent(
+    val content: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ShareTextTrigger) return false
+        return trigger.contentMatch == null || content.contains(trigger.contentMatch)
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("shared_text", content)
+    }
+}
+
+data class ShareFileEvent(
+    val path: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ShareFileTrigger) return false
+        return true
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("shared_file", path)
+    }
+}
+
+data class MacroFinishedEvent(
+    val macroId: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.MacroFinishedTrigger && trigger.macroId == macroId
+}
+
+data class LogcatEvent(
+    val line: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.LogcatTrigger) return false
+        return line.contains(trigger.pattern)
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("logcat_line", line)
+    }
+}
+
+data class SystemSettingEvent(
+    val settingKey: String,
+    val value: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.SystemSettingTrigger) return false
+        return trigger.value == null || trigger.value == value
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("setting_key", settingKey)
+        engine.setVariable("setting_value", value)
+    }
+}
+
+data class UsbDeviceConnectionEvent(
+    val connected: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.UsbDeviceConnectionTrigger && trigger.connected == connected
+}
+
+data class UsbTetheringEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.UsbTetheringTrigger && trigger.enabled == enabled
+}
+
+class IpAddressChangeEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.IpAddressChangeTrigger
+}
+
+data class NetworkTransportChangeEvent(
+    val transport: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.NetworkTransportChangeTrigger && trigger.transport == transport
+}
+
+data class NetworkRoamingEvent(
+    val roaming: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.NetworkRoamingTrigger && trigger.roaming == roaming
+}
+
+data class SimChangeEvent(
+    val state: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.SimChangeTrigger && trigger.state == state
+}
+
+data class SleepEvent(
+    val asleep: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.SleepTrigger && trigger.asleep == asleep
+}
+
+data class NfcStateEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.NfcStateTrigger && trigger.enabled == enabled
+}
+
+data class NfcTagEvent(
+    val tagId: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.NfcTagTrigger) return false
+        return trigger.tagId == null || trigger.tagId == tagId
+    }
+}
+
+data class GeofenceEvent(
+    val name: String,
+    val inside: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.GeofenceTrigger) return false
+        return trigger.name == name && trigger.enter == inside
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("geofence_name", name)
+        engine.setVariable("geofence_state", if (inside) "enter" else "exit")
+    }
+}
+
+data class LocationEvent(
+    val latitude: Double,
+    val longitude: Double,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.LocationTrigger) return false
+        val distance = haversineMeters(latitude, longitude, trigger.latitude, trigger.longitude)
+        return distance <= trigger.radiusMeters
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("location_lat", latitude.toString())
+        engine.setVariable("location_lon", longitude.toString())
+    }
+}
+
+data class CellTowerEvent(
+    val cellId: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.CellTowerTrigger && trigger.cellId == cellId
+}
+
+data class WeatherEvent(
+    val condition: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.WeatherTrigger && trigger.condition == condition
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("weather_condition", condition)
+    }
+}
+
+data class SunriseSunsetEvent(
+    val event: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.SunriseSunsetTrigger && trigger.event == event
+}
+
+data class DayOfMonthEvent(
+    val day: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.DayOfMonthTrigger && trigger.day == day
+}
+
+data class SystemTimeEvent(
+    val changed: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.SystemTimeTrigger && trigger.changed == changed
+}
+
+data class StopwatchEvent(
+    val durationMillis: Long,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.StopwatchTrigger) return false
+        return durationMillis >= trigger.durationMillis
+    }
+}
+
+data class WebhookEvent(
+    val url: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.WebhookTrigger && trigger.url == url
+}
+
+data class FloatingTextEvent(
+    val text: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.FloatingTextTrigger && trigger.text == text
+}
+
+data class FloatingButtonEvent(
+    val label: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.FloatingButtonTrigger && trigger.label == label
+}
+
+data class UIClickEvent(
+    val viewId: String?,
+    val text: String?,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.UIClickTrigger) return false
+        if (trigger.viewId != null && trigger.viewId != viewId) return false
+        return trigger.textMatch == null || (text != null && text.contains(trigger.textMatch))
+    }
+}
+
+data class SwipeEvent(
+    val direction: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.SwipeTrigger && trigger.direction == direction
+}
+
+data class ScreenContentEvent(
+    val text: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ScreenContentTrigger) return false
+        return trigger.textMatch == null || text.contains(trigger.textMatch)
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("screen_text", text)
+    }
+}
+
+data class ScreenshotContentEvent(
+    val text: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ScreenshotContentTrigger) return false
+        return trigger.textMatch == null || text.contains(trigger.textMatch)
+    }
+}
+
+data class AccessibilityServiceStateEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.AccessibilityServiceStateTrigger && trigger.enabled == enabled
+}
+
+class EmptyEvent : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.EmptyTrigger
+}
+
+data class VariableEvent(
+    val variableName: String,
+    val value: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.VariableTrigger) return false
+        if (trigger.variableName != variableName) return false
+        return evaluateBooleanExpression(trigger.expression, mapOf(variableName to value))
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable(variableName, value)
+    }
+}
+
+data class MacroEnabledEvent(
+    val macroId: String,
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.MacroEnabledTrigger && trigger.macroId == macroId && trigger.enabled == enabled
+}
+
+data class ApplicationInvokedEvent(
+    val packageName: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.ApplicationInvokedTrigger && trigger.packageName == packageName
+}
+
+data class ActivityLaunchedEvent(
+    val packageName: String,
+    val activityClass: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.ActivityLaunchedTrigger) return false
+        if (trigger.packageName != null && trigger.packageName != packageName) return false
+        return trigger.activityClass == null || trigger.activityClass == activityClass
+    }
+}
+
+data class AppEnabledEvent(
+    val packageName: String,
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.AppEnabledTrigger && trigger.packageName == packageName && trigger.enabled == enabled
+}
+
+data class PriorityModeEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.PriorityModeTrigger && trigger.enabled == enabled
+}
+
+data class AutoSyncEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.AutoSyncTrigger && trigger.enabled == enabled
+}
+
+data class DayDreamEvent(
+    val active: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.DayDreamTrigger && trigger.active == active
+}
+
+data class DrawerOpenCloseEvent(
+    val opened: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.DrawerOpenCloseTrigger && trigger.opened == opened
+}
+
+data class KeyboardOpenCloseEvent(
+    val opened: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.KeyboardOpenCloseTrigger && trigger.opened == opened
+}
+
+data class MediaTrackChangedEvent(
+    val packageName: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.MediaTrackChangedTrigger) return false
+        return trigger.packageName == null || trigger.packageName == packageName
+    }
+}
+
+data class MusicPlayingEvent(
+    val playing: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.MusicPlayingTrigger && trigger.playing == playing
+}
+
+data class MicrophoneRecordingEvent(
+    val recording: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.MicrophoneRecordingTrigger && trigger.recording == recording
+}
+
+data class CameraInUseEvent(
+    val inUse: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.CameraInUseTrigger && trigger.inUse == inUse
+}
+
+data class CameraFlashlightEvent(
+    val enabled: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.CameraFlashlightTrigger && trigger.enabled == enabled
+}
+
+data class BluetoothBeaconEvent(
+    val beaconId: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.BluetoothBeaconTrigger && trigger.beaconId == beaconId
+}
+
+data class AssistantActivatedEvent(
+    val assistant: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.AssistantActivatedTrigger && trigger.assistant == assistant
+}
+
+data class FailedLoginEvent(
+    val attempts: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.FailedLoginTrigger) return false
+        return attempts >= trigger.attempts
+    }
+}
+
+data class FingerprintGestureEvent(
+    val direction: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.FingerprintGestureTrigger && trigger.direction == direction
+}
+
+data class ActivityRecognitionEvent(
+    val activity: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.ActivityRecognitionTrigger && trigger.activity == activity
+}
+
+data class FoldAngleEvent(
+    val angle: Int,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.FoldAngleTrigger) return false
+        return if (trigger.direction == "below") angle <= trigger.angle else angle >= trigger.angle
+    }
+}
+
+data class FileChangedEvent(
+    val path: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.FileChangedTrigger && trigger.path == path
+}
+
+data class FileOpenedEvent(
+    val path: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.FileOpenedTrigger) return false
+        return true
+    }
+}
+
+data class PhotoTakenEvent(
+    val packageName: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.PhotoTakenTrigger) return false
+        return trigger.packageName == null || trigger.packageName == packageName
+    }
+}
+
+data class ModeEnterExitEvent(
+    val modeName: String,
+    val enter: Boolean,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean =
+        trigger is dev.niza.autodroid.engine.ModeEnterExitTrigger && trigger.modeName == modeName && trigger.enter == enter
+}
+
+data class HttpServerEvent(
+    val path: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean = trigger is dev.niza.autodroid.engine.HttpServerTrigger
+}
+
+data class EmailReceivedEvent(
+    val sender: String,
+    val subject: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.EmailReceivedTrigger) return false
+        if (trigger.senderMatch != null && !sender.contains(trigger.senderMatch)) return false
+        return true
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("email_sender", sender)
+        engine.setVariable("email_subject", subject)
+    }
+}
+
+data class DialNumberEvent(
+    val phoneNumber: String,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.DialNumberTrigger) return false
+        return trigger.phoneNumber == null || trigger.phoneNumber == phoneNumber
+    }
+}
+
+data class DataUsedEvent(
+    val bytes: Long,
+) : TriggerEvent {
+    override fun matches(trigger: Trigger): Boolean {
+        if (trigger !is dev.niza.autodroid.engine.DataUsedTrigger) return false
+        return if (trigger.direction == "below") bytes <= trigger.bytes else bytes >= trigger.bytes
+    }
+
+    override fun injectTriggerVariables(engine: AutomationEngine) {
+        engine.setVariable("data_used", bytes.toString())
+    }
+}
+
 class AutomationEngine(
     private val executor: ActionExecutor,
     @Volatile var deviceState: DeviceState? = null,
 ) {
     private val rules = mutableListOf<Rule>()
     private val variables = mutableMapOf<String, String>()
+    private val globalVariables = mutableMapOf<String, GlobalVariable>()
     private val executionLog = mutableListOf<ExecutionLogEntry>()
 
     private companion object {
@@ -332,9 +1086,89 @@ class AutomationEngine(
         variables[name] = value
     }
 
-    fun variable(name: String): String? = variables[name]
+    fun setGlobalVariable(
+        name: String,
+        type: VariableType,
+        value: String,
+        entries: List<VariableEntry> = emptyList(),
+    ) {
+        globalVariables[name] = GlobalVariable(name = name, type = type, value = value, entries = entries)
+    }
 
-    fun variables(): Map<String, String> = variables.toMap()
+    fun globalVariable(name: String): GlobalVariable? = globalVariables[name]
+
+    fun globalVariables(): List<GlobalVariable> = globalVariables.values.sortedBy { it.name.lowercase() }
+
+    fun deleteGlobalVariable(name: String) {
+        globalVariables.remove(name)
+    }
+
+    fun clearGlobalVariables() {
+        globalVariables.clear()
+    }
+
+    fun setDictionaryEntry(
+        name: String,
+        key: String,
+        value: String,
+    ) {
+        val variable = globalVariables[name] ?: GlobalVariable(name = name, type = VariableType.DICTIONARY)
+        val entries = variable.entries.filterNot { it.key == key }.toMutableList()
+        entries += VariableEntry(key = key, value = value)
+        globalVariables[name] = variable.copy(type = VariableType.DICTIONARY, entries = entries)
+    }
+
+    fun dictionaryEntry(
+        name: String,
+        key: String,
+    ): String? = globalVariables[name]?.entries?.firstOrNull { it.key == key }?.value
+
+    fun clearDictionaryEntry(
+        name: String,
+        key: String,
+    ) {
+        val variable = globalVariables[name] ?: return
+        globalVariables[name] = variable.copy(entries = variable.entries.filterNot { it.key == key })
+    }
+
+    fun setArrayEntry(
+        name: String,
+        index: Int,
+        value: String,
+    ) {
+        val variable = globalVariables[name] ?: GlobalVariable(name = name, type = VariableType.ARRAY)
+        val entries = variable.entries.filterNot { it.key == index.toString() }.toMutableList()
+        entries += VariableEntry(key = index.toString(), value = value)
+        globalVariables[name] = variable.copy(type = VariableType.ARRAY, entries = entries)
+    }
+
+    /** Local variables win; global variables and their dictionary/array entries are the fallback. */
+    fun variable(name: String): String? =
+        variables[name] ?: run {
+            val selector = name.indexOf('[')
+            if (selector > 0 && name.endsWith("]")) {
+                val base = name.substring(0, selector)
+                val key = name.substring(selector + 1, name.length - 1)
+                globalVariables[base]?.entries?.firstOrNull { it.key == key }?.value
+            } else {
+                globalVariables[name]?.takeIf { it.type != VariableType.DICTIONARY && it.type != VariableType.ARRAY }?.value
+            }
+        }
+
+    /** Flat view used by constraint evaluation: local variables plus each global variable's resolved entries. */
+    fun variables(): Map<String, String> {
+        val merged = variables.toMutableMap()
+        globalVariables.values.forEach { variable ->
+            if (variable.type == VariableType.DICTIONARY || variable.type == VariableType.ARRAY) {
+                variable.entries.forEach { entry ->
+                    merged["${variable.name}[${entry.key}]"] = entry.value
+                }
+            } else {
+                merged[variable.name] = variable.value
+            }
+        }
+        return merged
+    }
 
     fun executionLog(): List<ExecutionLogEntry> = executionLog.toList()
 
@@ -351,8 +1185,26 @@ class AutomationEngine(
             constraint.satisfied(deviceState ?: DeviceState(), variables())
         }
 
+    /** Resolves `{name}` and `{name[key]}` placeholders using local then global variables. */
+    private fun substituteVariables(expression: String): String {
+        var text = expression
+        variables.forEach { (name, value) ->
+            text = text.replace("{$name}", value)
+        }
+        globalVariables.values.forEach { variable ->
+            if (variable.type == VariableType.DICTIONARY || variable.type == VariableType.ARRAY) {
+                variable.entries.forEach { entry ->
+                    text = text.replace("{${variable.name}[${entry.key}]}", entry.value)
+                }
+            } else {
+                text = text.replace("{${variable.name}}", variable.value)
+            }
+        }
+        return text
+    }
+
     fun evaluateExpression(expression: String): Boolean {
-        val resolved = variables.entries.fold(expression) { text, (name, value) -> text.replace("{$name}", value) }
+        val resolved = substituteVariables(expression)
         val orParts = resolved.split("||")
         if (orParts.size > 1) {
             return orParts.any { evaluateSingleExpression(it.trim()) }
@@ -422,6 +1274,11 @@ class AutomationEngine(
         var insideIf = false
         var inElseBranch = false
         var conditionPassed = false
+        var insideIterate = false
+        var iterateKeyVariable = ""
+        var iterateValueVariable = ""
+        var iterateIndex = 0
+        val iterateActions = mutableListOf<Action>()
         var insideRepeat = false
         var repeatRemaining = 0
         var repeatIndex = 0
@@ -435,20 +1292,32 @@ class AutomationEngine(
                     repeatIndex = 0
                     repeatActions.clear()
                 }
+                is dev.niza.autodroid.engine.IterateDictionaryAction -> {
+                    insideIterate = true
+                    iterateKeyVariable = action.keyVariable
+                    iterateValueVariable = action.valueVariable
+                    iterateIndex = 0
+                    iterateActions.clear()
+                }
+                is dev.niza.autodroid.engine.IterateDictionaryEndAction -> {
+                    val entries = globalVariables[action.dictionaryName]?.entries ?: emptyList()
+                    entries.forEach { entry ->
+                        iterateIndex++
+                        setVariable(iterateKeyVariable, entry.key)
+                        setVariable(iterateValueVariable, entry.value)
+                        iterateActions.forEach { inner -> results += runInner(inner, iterateIndex) }
+                    }
+                    insideIterate = false
+                    iterateKeyVariable = ""
+                    iterateValueVariable = ""
+                    iterateIndex = 0
+                    iterateActions.clear()
+                }
                 is dev.niza.autodroid.engine.RepeatEndAction -> {
                     if (insideRepeat) {
                         repeat(repeatRemaining) {
                             repeatIndex++
-                            repeatActions.forEach { inner ->
-                                when (inner) {
-                                    is dev.niza.autodroid.engine.SetVariableAction ->
-                                        setVariable(
-                                            inner.name,
-                                            inner.value.replace("{loop_index}", repeatIndex.toString()),
-                                        )
-                                    else -> results += executor.execute(inner)
-                                }
-                            }
+                            repeatActions.forEach { inner -> results += runInner(inner, repeatIndex) }
                         }
                     }
                     insideRepeat = false
@@ -469,15 +1338,73 @@ class AutomationEngine(
                 }
                 else -> {
                     val shouldExecute = !insideIf || conditionPassed || inElseBranch
-                    if (shouldExecute && !insideRepeat) {
-                        results += executor.execute(action)
-                    } else if (shouldExecute && insideRepeat) {
-                        repeatActions += action
+                    val target =
+                        when {
+                            insideIterate -> iterateActions
+                            insideRepeat -> repeatActions
+                            else -> null
+                        }
+                    if (shouldExecute && target == null) {
+                        results += executeSingle(action)
+                    } else if (shouldExecute && target != null) {
+                        target += action
                     }
                 }
             }
         }
         return results
+    }
+
+    private fun runInner(
+        action: Action,
+        loopIndex: Int,
+    ): ActionResult =
+        when (action) {
+            is dev.niza.autodroid.engine.SetVariableAction -> {
+                val resolved = substituteVariables(action.value).replace("{loop_index}", loopIndex.toString())
+                setVariable(action.name, resolved)
+                ActionResult(action.id, success = true)
+            }
+            else -> executeSingle(action)
+        }
+
+    private fun executeSingle(action: Action): ActionResult =
+        when (action) {
+            is dev.niza.autodroid.engine.SetDictionaryEntryAction ->
+                applyDictionaryWrite(action).let { ActionResult(action.id, success = true, message = it) }
+            is dev.niza.autodroid.engine.ClearDictionaryEntryAction ->
+                applyDictionaryClear(action).let { ActionResult(action.id, success = true, message = it) }
+            is dev.niza.autodroid.engine.SetArrayEntryAction ->
+                applyArrayWrite(action).let { ActionResult(action.id, success = true, message = it) }
+            is dev.niza.autodroid.engine.ClearVariablesAction ->
+                applyClearVariables(action).let { ActionResult(action.id, success = true, message = it) }
+            is dev.niza.autodroid.engine.SetVariableAction -> {
+                setVariable(action.name, substituteVariables(action.value))
+                ActionResult(action.id, success = true)
+            }
+            else -> executor.execute(action)
+        }
+
+    private fun applyDictionaryWrite(action: dev.niza.autodroid.engine.SetDictionaryEntryAction): String {
+        val key = substituteVariables(action.key)
+        val value = substituteVariables(action.value)
+        setDictionaryEntry(action.dictionaryName, key, value)
+        return "set"
+    }
+
+    private fun applyDictionaryClear(action: dev.niza.autodroid.engine.ClearDictionaryEntryAction): String {
+        clearDictionaryEntry(action.dictionaryName, substituteVariables(action.key))
+        return "cleared"
+    }
+
+    private fun applyArrayWrite(action: dev.niza.autodroid.engine.SetArrayEntryAction): String {
+        setArrayEntry(action.arrayName, action.index, substituteVariables(action.value))
+        return "set"
+    }
+
+    private fun applyClearVariables(action: dev.niza.autodroid.engine.ClearVariablesAction): String {
+        variables.clear()
+        return "cleared"
     }
 }
 
@@ -491,6 +1418,22 @@ data class ExecutionReport(
 
 fun interface ActionExecutor {
     fun execute(action: Action): ActionResult
+}
+
+internal fun haversineMeters(
+    lat1: Double,
+    lon1: Double,
+    lat2: Double,
+    lon2: Double,
+): Double {
+    val earthRadius = 6_371_000.0
+    val deltaLat = Math.toRadians(lat2 - lat1)
+    val deltaLon = Math.toRadians(lon2 - lon1)
+    val a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2)
+    return 2 * earthRadius * Math.asin(Math.min(1.0, Math.sqrt(a)))
 }
 
 data class ActionResult(

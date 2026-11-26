@@ -8,6 +8,40 @@ This document maps MacroDroid's public feature surface to AutoDroid's independen
 - Tool: `rea-agents` 6.9.0 + `jadx-headless-mcp` 0.7.1
 - Evidence: `work/macro-droid-triggers.txt` (153 trigger classes), `work/macro-droid-actions.txt` (240 action classes)
 
+## 实测进度（2026-11-26）
+
+| 维度 | MacroDroid 分析类数 | AutoDroid 实现模型 | 编辑器可选 | 证据 |
+| --- | --- | --- | --- | --- |
+| 触发器 | 153 | 113 | 83 | `engine/.../AutomationModels.kt`、`engine/.../TriggerCatalog.kt` |
+| 动作 | 240 | 138 | 81 | `engine/.../AutomationModels.kt`、`engine/.../ActionCatalog.kt` |
+| 约束 | — | 16 | 16 | `engine/.../ConstraintEvaluator` 相关 |
+| engine 测试 | — | 64 passed | — | `./gradlew :engine:test` |
+| app 测试 | — | 10 passed | — | `./gradlew :app:testDebugUnitTest` |
+
+### 已落地能力
+
+- 全局变量：标量、字典（`{name[key]}`）、数组，配合 `SetDictionaryEntry` / `ClearDictionaryEntry` /
+  `SetArrayEntry` / `IterateDictionary` / `ClearVariables` 动作。
+- 控制流重构：`If/Else/End If`、`Repeat`、`IterateDictionary`、`Break/Continue`、`Goto`、`Mutex`、`Stop Macro`
+  统一走 `executeSingle` / `runInner`，`{loop_index}` 在循环体内始终可用。
+- 动作执行层 `app/.../ActionHandlers.kt`：通知/网页/短信/电话/邮件/分享/剪贴板/音量/亮度/铃声/振动/朗读/
+  媒体控制/拨号/对话框/文件读写/系统设置等；无权限或需系统签名的操作返回明确失败信息而不是假成功。
+- 编辑器目录化：`TriggerCatalog` / `ActionCatalog` 单一声源，UI、序列化、摘要三者不会漂移；
+  `CatalogCoverageTest` 逐个验证「目录项 → 模型 → 反查」闭环。
+
+### 尚未接通的部分（下一步）
+
+- Android 侧的系统事件派发仍未覆盖全部新触发器：目前 `DeviceStateReceiver` 只对 ScreenOnOff、
+  BatteryLevel、AirplaneMode、Bluetooth、AppLifecycle、PowerSaveMode 六个做动态注册。
+  其余触发器已有模型与事件类，但缺 `BroadcastReceiver` / 传感器 / 位置 / 无障碍接线。
+- 动作目录中约 25 个条目在 `ActionHandlers` 里走「需系统权限」分支，属于平台限制而非未实现。
+- 约束编辑器仍是 16 项固定下拉，未与新增设备状态对齐。
+- Home/Templates/Settings 页面与 MacroDroid 的模板库、场景（Scene）、地理围栏管理页尚未实现。
+
+- APK: MacroDroid v6.2.4 beta (arm64), official distribution
+- Tool: `rea-agents` 6.9.0 + `jadx-headless-mcp` 0.7.1
+- Evidence: `work/macro-droid-triggers.txt` (153 trigger classes), `work/macro-droid-actions.txt` (240 action classes)
+
 ## Trigger Parity
 
 ### Implemented

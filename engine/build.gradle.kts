@@ -15,4 +15,9 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    filter {
+        isFailOnNoMatchingTests = false
+        includeTestsMatching("dev.niza.autodroid.engine.*Test")
+    }
 }

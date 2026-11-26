@@ -132,20 +132,21 @@ private fun MainActivity.showPage(
     findViewById<FloatingActionButton>(R.id.fab_add).visibility =
         if (pageId == R.id.macros_page) View.VISIBLE else View.GONE
     if (pageId == R.id.settings_page) renderSettings()
-        if (pageId == R.id.templates_page) {
-            findViewById<TextView>(R.id.templates_empty).text = getString(R.string.templates_empty)
-        }
+    if (pageId == R.id.templates_page) {
+        findViewById<TextView>(R.id.templates_empty).text = getString(R.string.templates_empty)
+    }
 }
 
 private fun MainActivity.setupMacroFilters(listView: ListView) {
-    val filters = listOf(
-        R.id.filter_favourites,
-        R.id.filter_all,
-        R.id.filter_enabled,
-        R.id.filter_disabled,
-        R.id.filter_errors,
-        R.id.filter_running,
-    )
+    val filters =
+        listOf(
+            R.id.filter_favourites,
+            R.id.filter_all,
+            R.id.filter_enabled,
+            R.id.filter_disabled,
+            R.id.filter_errors,
+            R.id.filter_running,
+        )
     filters.forEach { id ->
         findViewById<AppCompatCheckedTextView>(id).setOnClickListener { selected ->
             filters.forEach { filterId ->

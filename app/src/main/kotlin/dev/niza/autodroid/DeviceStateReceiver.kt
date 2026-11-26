@@ -197,8 +197,9 @@ object DeviceStateReceiver {
                     context: Context,
                     intent: Intent,
                 ) {
-                    val powerManager = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
-                        ?: return
+                    val powerManager =
+                        context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+                            ?: return
                     Runtime.initialize(context)
                     Runtime.loadRules(context)
                     Runtime.dispatchAndReport(PowerSaveModeEvent(powerManager.isPowerSaveMode))

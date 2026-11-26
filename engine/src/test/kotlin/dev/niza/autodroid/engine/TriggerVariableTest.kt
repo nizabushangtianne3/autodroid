@@ -95,12 +95,15 @@ class TriggerVariableTest {
         )
 
         val installReport = engine.dispatch(AppLifecycleEvent("com.example.app", added = true))
-        val removeReport = engine.dispatch(AppLifecycleEvent("com.example.app", added = false))
 
         assertEquals(1, installReport.matchedRuleCount)
-        assertEquals(0, removeReport.matchedRuleCount)
         assertEquals("com.example.app", engine.variable("app_lifecycle_package"))
         assertEquals("true", engine.variable("app_lifecycle_added"))
+
+        val removeReport = engine.dispatch(AppLifecycleEvent("com.example.app", added = false))
+
+        assertEquals(0, removeReport.matchedRuleCount)
+        assertEquals("false", engine.variable("app_lifecycle_added"))
     }
 
     @Test
@@ -116,10 +119,12 @@ class TriggerVariableTest {
         )
 
         val onReport = engine.dispatch(PowerSaveModeEvent(enabled = true))
-        val offReport = engine.dispatch(PowerSaveModeEvent(enabled = false))
 
         assertEquals(1, onReport.matchedRuleCount)
-        assertEquals(0, offReport.matchedRuleCount)
         assertEquals("true", engine.variable("power_save_mode"))
+
+        val offReport = engine.dispatch(PowerSaveModeEvent(enabled = false))
+
+        assertEquals(0, offReport.matchedRuleCount)
     }
 }

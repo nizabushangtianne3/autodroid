@@ -6,6 +6,11 @@ import android.view.accessibility.AccessibilityEvent
 import dev.niza.autodroid.engine.AppLaunchedEvent
 
 class AppLaunchAccessibilityService : AccessibilityService() {
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        instance = this
+    }
+
     private var lastPackageName: String? = null
     private var lastDispatchAtMs = 0L
 
@@ -22,7 +27,16 @@ class AppLaunchAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() = Unit
 
-    private companion object {
+    override fun onDestroy() {
+        if (instance == this) instance = null
+        super.onDestroy()
+    }
+
+    companion object {
+        @Volatile
+        var instance: AppLaunchAccessibilityService? = null
+            private set
+
         private const val DEBOUNCE_MS = 1000L
     }
 }

@@ -32,8 +32,8 @@ android {
         applicationId = "dev.niza.autodroid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.1.12"
+        versionCode = 14
+        versionName = "0.2.0"
     }
 
     compileOptions {

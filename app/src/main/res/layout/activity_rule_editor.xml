@@ -79,7 +79,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="短信发送方，可留空"
+                    android:textColor="@android:color/white"
+                android:textColorHint="@color/md_text_secondary" />
+
+                <EditText
+                    android:id="@+id/input_trigger_extra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:textColor="@android:color/white"
                     android:textColorHint="@color/md_text_secondary" />
             </LinearLayout>
